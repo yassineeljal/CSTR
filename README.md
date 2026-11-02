@@ -71,13 +71,13 @@ Décisions d'architecture : [`docs/decisions/`](docs/decisions/) · Modèle et �
 
 ## Validation
 
-| Niveau                                                                    | Résultat                                                                                       |
-| ------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Moteur TS vs SciPy (10 trajectoires, 2 jeux de paramètres, jusqu'à 456 K) | écart relatif max **< 3·10⁻⁸** (exigence : 0,5 %)                                              |
-| Tests unitaires (Vitest)                                                  | **270+**, couverture de lignes ≈ 96 %                                                          |
+| Niveau                                                                    | Résultat                                                                                      |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| Moteur TS vs SciPy (10 trajectoires, 2 jeux de paramètres, jusqu'à 456 K) | écart relatif max **< 3·10⁻⁸** (exigence : 0,5 %)                                             |
+| Tests unitaires (Vitest)                                                  | **270+**, couverture de lignes ≈ 96 %                                                         |
 | Tests e2e (Playwright, build de production)                               | **25** : worker, scénarios, quench, alarmes, presets, raccourcis, WebGL absent, onglet masqué |
-| Formules des fiches théoriques                                            | compilées en mode strict par KaTeX dans les tests                                              |
-| Lighthouse (desktop)                                                      | **100 / 100 / 100 / 100**                                                                      |
+| Formules des fiches théoriques                                            | compilées en mode strict par KaTeX dans les tests                                             |
+| Lighthouse (desktop)                                                      | **100 / 100 / 100 / 100**                                                                     |
 
 Performances mesurées : voir [`docs/perf.md`](docs/perf.md) (moteur 0,031 ms par tick ; 90 draw calls ; ≈ 58 FPS ; mémoire GPU stable sur 10 min).
 
