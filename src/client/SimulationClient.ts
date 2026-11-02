@@ -8,7 +8,7 @@ import type {
 } from '@/simulation/types';
 import { SEBORG_STEADY_STATE } from '@/simulation/presets/seborgBenchmark';
 import { useReactorStore } from '@/store/useReactorStore';
-import { simRef, simVersion } from './simRef';
+import { notifySnapshot, simRef, simVersion } from './simRef';
 import { sampleTelemetry } from './telemetry';
 import type { SimulationTransport } from './transport';
 
@@ -36,6 +36,7 @@ export class SimulationClient {
         simRef.current.set(e.buffer.subarray(0, SNAPSHOT_SIZE));
         simVersion.current++;
         sampleTelemetry(simRef.current);
+        notifySnapshot();
         break;
       case 'status':
         store.setStatus(e.status, e.mode);

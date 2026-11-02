@@ -217,7 +217,7 @@ export function TelemetryCharts() {
           <figure key={def.id} className="m-0">
             <figcaption className="text-muted mb-0.5 flex items-center justify-between font-mono text-[10px]">
               <span>
-                {def.title} <span className="opacity-70">[{def.unit}]</span>
+                {def.title} <span>[{def.unit}]</span>
               </span>
               <span className="flex gap-2">
                 {def.series.map((s) => (
@@ -239,7 +239,7 @@ export function TelemetryCharts() {
               role="img"
               aria-label={def.description}
               data-testid={`chart-${def.id}`}
-              className="w-full"
+              className="min-h-[128px] w-full"
             />
           </figure>
         ))}

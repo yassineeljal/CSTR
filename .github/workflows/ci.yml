@@ -8,14 +8,15 @@ concurrency:
   cancel-in-progress: true
 jobs:
   check:
+    name: Lint · types · tests · build · e2e
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm lint
@@ -25,3 +26,29 @@ jobs:
       - run: pnpm build
       - run: pnpm exec playwright install --with-deps chromium
       - run: pnpm test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-artifacts
+          path: |
+            test-results/
+            playwright-report/
+          retention-days: 7
+
+  # Les trajectoires de référence commitées ne doivent jamais diverger de leur source Python
+  # (comparaison numérique : les arrondis de LSODA varient à ~1e-12 selon la plateforme).
+  # La géométrie partagée avec Blender est, elle, vérifiée par un test Vitest (geometry.test.ts).
+  reference:
+    name: Fichiers de référence à jour
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: notebooks/requirements.txt
+      - run: pip install -r notebooks/requirements.txt
+      - name: Vérifier que les trajectoires golden correspondent à la source Python
+        run: python notebooks/check_golden.py

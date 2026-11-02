@@ -5,10 +5,12 @@ import { Suspense, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { ContactShadows, Environment, Lightformer, OrbitControls } from '@react-three/drei';
 import { SRGBColorSpace } from 'three';
+import { useQuality } from '@/hooks/useQuality';
+import { scaledCount } from '@/lib/quality';
 import { computeGeometry } from '@/simulation/geometry';
 import { useReactorStore } from '@/store/useReactorStore';
 import { Agitator } from './Agitator';
-import { BubbleParticles } from './BubbleParticles';
+import { BubbleParticles, MAX_BUBBLES } from './BubbleParticles';
 import { Baffles } from './Baffles';
 import { CoolingJacket } from './CoolingJacket';
 import { CutawayProvider } from './CutawayContext';
@@ -18,7 +20,9 @@ import { PostEffects } from './PostEffects';
 import { ReactorDetails } from './ReactorDetails';
 import { ReactorVessel } from './ReactorVessel';
 import { RenderStats } from './RenderStats';
-import { SteamParticles } from './SteamParticles';
+import { MAX_STEAM, SteamParticles } from './SteamParticles';
+import { FrameDriver } from './FrameDriver';
+import { AdaptiveQuality } from './AdaptiveQuality';
 import { VibrationRig } from './VibrationRig';
 
 /** Réglages live : uniquement en développement, absents du bundle de production (S3-L09). */
@@ -28,6 +32,13 @@ const DevControls =
     : () => null;
 
 /** Studio procédural : 3 panneaux lumineux (aucun HDRI téléchargé → fonctionne hors ligne). */
+/** Drapeau de diagnostic (URL) : `?fx=off` coupe le post-traitement (mesure du coût des effets). */
+function diagnosticFlag(name: string): boolean {
+  return (
+    typeof window !== 'undefined' && new URLSearchParams(window.location.search).get(name) === 'off'
+  );
+}
+
 function StudioEnvironment() {
   return (
     <Environment resolution={512} frames={1}>
@@ -92,6 +103,7 @@ function StudioEnvironment() {
 function Reactor() {
   const volumeL = useReactorStore((s) => s.params.volumeL);
   const fcMaxLps = useReactorStore((s) => s.params.fcMaxLps);
+  const { tier } = useQuality();
   const g = useMemo(() => computeGeometry(volumeL), [volumeL]);
   return (
     <CutawayProvider>
@@ -100,9 +112,9 @@ function Reactor() {
         <CoolingJacket geometry={g} fcMaxLps={fcMaxLps} />
         <Baffles geometry={g} />
         <Fluid geometry={g} />
-        <BubbleParticles geometry={g} />
+        <BubbleParticles geometry={g} count={scaledCount(MAX_BUBBLES, tier)} />
         <Agitator geometry={g} />
-        <SteamParticles geometry={g} />
+        <SteamParticles geometry={g} count={scaledCount(MAX_STEAM, tier)} />
         <Suspense fallback={null}>
           <ReactorDetails geometry={g} />
         </Suspense>
@@ -122,7 +134,10 @@ function Floor({ y, radius }: { y: number; radius: number }) {
         <circleGeometry args={[radius, 96]} />
         <meshStandardMaterial color="#1b2026" metalness={0.2} roughness={0.85} />
       </mesh>
+      {/* frames={1} : ombre de contact calculée une fois (le réacteur est statique) ; sinon elle
+          re-rend toute la scène depuis le sol à chaque image */}
       <ContactShadows
+        frames={1}
         position={[0, 0.002, 0]}
         opacity={0.55}
         scale={radius * 1.2}
@@ -156,7 +171,7 @@ export default function ReactorScene() {
     <Canvas
       shadows
       flat
-      dpr={[1, 2]}
+      frameloop="demand"
       gl={{
         antialias: false,
         outputColorSpace: SRGBColorSpace,
@@ -183,7 +198,9 @@ export default function ReactorScene() {
       <directionalLight position={[-3, 2, -3]} intensity={0.6} color="#7aa7ff" />
       <StudioEnvironment />
       <Reactor />
-      <PostEffects />
+      {!diagnosticFlag('fx') && <PostEffects />}
+      <FrameDriver />
+      <AdaptiveQuality />
       <RenderStats />
       <DevControls />
       <OrbitControls

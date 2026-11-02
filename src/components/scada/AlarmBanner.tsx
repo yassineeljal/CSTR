@@ -70,7 +70,7 @@ export function AlarmBanner() {
                 data-testid={`alarm-${level}`}
                 data-active={rec.active ? 'true' : 'false'}
                 data-acknowledged={rec.acknowledged ? 'true' : 'false'}
-                className={`rounded border-2 px-3 py-1 font-mono text-xs font-bold tracking-wide shadow-lg ${st.box} ${st.text} ${blink ? 'alarm-unacked' : ''} ${rec.active ? '' : 'opacity-60'}`}
+                className={`rounded border-2 px-3 py-1 font-mono text-xs font-bold tracking-wide shadow-lg ${st.box} ${st.text} ${blink ? 'alarm-unacked' : ''} ${rec.active ? '' : 'border-dashed'}`}
               >
                 {st.label}
                 {rec.active ? '' : ' — retour à la normale'}

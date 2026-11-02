@@ -17,7 +17,8 @@ import numpy as np
 from cstr_model import Inputs, Params, simulate, steady_states_level1
 from presets_py import propylene_oxide
 
-OUT = Path(__file__).resolve().parent.parent / "tests" / "golden"
+DEFAULT_OUT = Path(__file__).resolve().parent.parent / "tests" / "golden"
+OUT = DEFAULT_OUT  # surchargé par --out (vérification en CI)
 
 # Correspondance Params (Python) → ReactorParams (TypeScript). Source unique des noms.
 TS_NAMES = {
@@ -113,4 +114,8 @@ def main():
 
 
 if __name__ == "__main__":
+    import sys
+
+    if "--out" in sys.argv:
+        OUT = Path(sys.argv[sys.argv.index("--out") + 1])
     main()

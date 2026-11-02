@@ -18,7 +18,12 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        launchOptions: { args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'] },
+        launchOptions: {
+          // PERF_GPU=1 : GPU réel (Metal/ANGLE) pour l'audit de performance local ; sinon SwiftShader (CI)
+          args: process.env.PERF_GPU
+            ? ['--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist']
+            : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader'],
+        },
       },
     },
   ],

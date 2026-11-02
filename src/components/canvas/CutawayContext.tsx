@@ -25,12 +25,14 @@ export function CutawayProvider({ children }: { children: ReactNode }) {
   const uniforms = useMemo(() => createWedgeUniforms(), []);
   const angle = useRef(FULL_CUT);
   const state = useMemo<CutawayState>(() => ({ uniforms, angle }), [uniforms, angle]);
-  useFrame((_, delta) => {
+  useFrame(({ invalidate }, delta) => {
     const target = useReactorStore.getState().ui.cutaway ? FULL_CUT : 0;
     const a = angle.current;
     const next = a + (target - a) * (1 - Math.exp(-CUT_RATE * Math.min(delta, 0.1)));
     angle.current = Math.abs(next - target) < 1e-3 ? target : next;
     setWedgeAngle(uniforms, angle.current);
+    // rendu à la demande : l'animation d'ouverture/fermeture entretient la boucle jusqu'à la cible
+    if (angle.current !== target) invalidate();
   });
   return <CutawayContext.Provider value={state}>{children}</CutawayContext.Provider>;
 }

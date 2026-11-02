@@ -2,6 +2,7 @@
 
 import { Bloom, EffectComposer, ToneMapping, Vignette } from '@react-three/postprocessing';
 import { ToneMappingMode } from 'postprocessing';
+import { useQuality } from '@/hooks/useQuality';
 import { useReactorStore } from '@/store/useReactorStore';
 
 /** Seuil de luminance du Bloom (HDR) : seul le fluide émissif (> 1) l'atteint, soit ≳ 400 K. */
@@ -13,8 +14,8 @@ export const BLOOM_THRESHOLD = 1.1;
  */
 export function PostEffects() {
   const inspection = useReactorStore((s) => s.ui.inspectionMode);
-  const quality = useReactorStore((s) => s.ui.quality);
-  const bloomOn = !inspection && quality !== 'low';
+  const { settings } = useQuality();
+  const bloomOn = !inspection && settings.bloom;
   return (
     <EffectComposer multisampling={0} enableNormalPass={false}>
       <Bloom

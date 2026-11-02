@@ -37,7 +37,7 @@
 | 4 — Shaders & effets | ✅ terminé | Fluide/enveloppe/bulles/vapeur sur GPU, Bloom, rupture |
 | 5 — SCADA & scénarios | ✅ terminé | HUD complet, 16 tests e2e, presets, raccourcis |
 | 6 — Inspection académique | ✅ terminé | i18n FR/EN (optionnel) non fait |
-| 7 — Production | ⏳ à faire | |
+| 7 — Production | ✅ terminé (hors liaison Vercel / domaine / Supabase) | voir `docs/perf.md` |
 
 > Les écarts de modèle décidés en cours de route (capacité de paroi, enveloppe, seuils d'alarme, quench) sont listés avec leur justification dans [`docs/model.md`](model.md) §2. Le §4.6 ci-dessous reste le jeu *de départ* du plan.
 

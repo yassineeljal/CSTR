@@ -1,14 +1,14 @@
 'use client';
 
-import { useEffect } from 'react';
-import { InspectionOverlay } from '@/components/academic/InspectionOverlay';
-import { TheoryDrawer } from '@/components/academic/TheoryDrawer';
-import { VanHeerdenChart } from '@/components/academic/VanHeerdenChart';
+import { useEffect, useSyncExternalStore } from 'react';
+import dynamic from 'next/dynamic';
+import { useAutoPauseOnHidden } from '@/hooks/useAutoPauseOnHidden';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { SCENARIOS } from '@/simulation/scenarios';
 import { TIME_SCALES } from '@/simulation/protocol';
 import type { ScenarioId } from '@/simulation/types';
 import { useReactorStore } from '@/store/useReactorStore';
+import { Segmented } from '@/components/ui/Segmented';
 import { AlarmBanner, AlarmHistory } from './AlarmBanner';
 import { ControlPanel } from './ControlPanel';
 import { LiveReadouts } from './LiveReadouts';
@@ -22,6 +22,23 @@ import { ShortcutHelp } from './ShortcutHelp';
 import { SimulationProvider, useSim } from './SimulationContext';
 import { TelemetryCharts } from './TelemetryCharts';
 import { TimeControls } from './TimeControls';
+
+/**
+ * Chargés à la demande (S7-L03) : KaTeX, react-markdown et les fiches ne pèsent pas dans le JS
+ * initial ; ils ne sont téléchargés qu'à l'ouverture du mode Inspection ou d'une fiche.
+ */
+const InspectionOverlay = dynamic(
+  () => import('@/components/academic/InspectionOverlay').then((m) => m.InspectionOverlay),
+  { ssr: false },
+);
+const TheoryDrawer = dynamic(
+  () => import('@/components/academic/TheoryDrawer').then((m) => m.TheoryDrawer),
+  { ssr: false },
+);
+const VanHeerdenChart = dynamic(
+  () => import('@/components/academic/VanHeerdenChart').then((m) => m.VanHeerdenChart),
+  { ssr: false },
+);
 
 const btn =
   'rounded border border-line bg-panel/90 px-3 py-1.5 font-mono text-xs font-medium text-zinc-200 backdrop-blur hover:bg-line focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent';
@@ -42,7 +59,9 @@ function DeepLink() {
 }
 
 function Shortcuts() {
-  useKeyboardShortcuts(useSim());
+  const sim = useSim();
+  useKeyboardShortcuts(sim);
+  useAutoPauseOnHidden(sim);
   return null;
 }
 
@@ -59,6 +78,9 @@ function Scene() {
   const sim = useSim();
   const cutaway = useReactorStore((s) => s.ui.cutaway);
   const inspection = useReactorStore((s) => s.ui.inspectionMode);
+  const theory = useReactorStore((s) => s.ui.theorySheet !== null);
+  const quality = useReactorStore((s) => s.ui.quality);
+  const autoPause = useReactorStore((s) => s.ui.autoPauseHidden);
   const reducedMotion = useReactorStore((s) => s.ui.reducedMotion);
   const patchUi = useReactorStore((s) => s.patchUi);
   return (
@@ -66,7 +88,7 @@ function Scene() {
       <div className="absolute inset-0">
         <ReactorStage />
       </div>
-      <InspectionOverlay />
+      {inspection && <InspectionOverlay />}
       <AlarmBanner />
       <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
         <button
@@ -105,8 +127,30 @@ function Scene() {
         >
           Réduire les animations
         </button>
+        <div className="border-line bg-panel/90 flex items-center gap-1.5 rounded border px-2 py-1 backdrop-blur">
+          <span className="text-muted font-mono text-[10px]">Qualité</span>
+          <Segmented
+            label="Qualité de rendu"
+            value={quality}
+            options={[
+              { value: 'auto', label: 'Auto' },
+              { value: 'high', label: 'Haute' },
+              { value: 'low', label: 'Basse' },
+            ]}
+            onChange={(q) => patchUi({ quality: q })}
+          />
+        </div>
+        <button
+          type="button"
+          className={btn}
+          aria-pressed={autoPause}
+          data-testid="autopause-toggle"
+          onClick={() => patchUi({ autoPauseHidden: !autoPause })}
+        >
+          Pause auto (onglet masqué)
+        </button>
       </div>
-      <TheoryDrawer />
+      {theory && <TheoryDrawer />}
       <RuptureOverlay
         onRetry={() => {
           sim?.reset();
@@ -117,9 +161,31 @@ function Scene() {
   );
 }
 
+const noopSubscribe = () => () => {};
+
+/** Mode « kiosque » (`?kiosk=1`) : scène seule, plein cadre — présentations, intégrations, image de partage. */
+function useKiosk(): boolean {
+  return useSyncExternalStore(
+    noopSubscribe,
+    () => new URLSearchParams(window.location.search).get('kiosk') === '1',
+    () => false,
+  );
+}
+
 /** Poste de contrôle : commandes à gauche, scène 3D au centre, mesures et courbes à droite. */
 export function HudLayout() {
   const inspection = useReactorStore((s) => s.ui.inspectionMode);
+  const kiosk = useKiosk();
+  if (kiosk) {
+    return (
+      <SimulationProvider>
+        <DeepLink />
+        <div className="bg-background h-dvh w-full">
+          <ReactorStage />
+        </div>
+      </SimulationProvider>
+    );
+  }
   return (
     <SimulationProvider>
       <DeepLink />

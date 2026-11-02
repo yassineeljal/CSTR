@@ -16,5 +16,11 @@ interface ReadoutProps {
  */
 export function Readout({ format, level, className }: ReadoutProps) {
   const ref = useThrottledReadout<HTMLSpanElement>(format, level);
-  return <span ref={ref} className={className} aria-live="off" />;
+  return (
+    <span
+      ref={ref}
+      className={`inline-block min-h-[1lh] min-w-[3ch] ${className ?? ''}`}
+      aria-live="off"
+    />
+  );
 }

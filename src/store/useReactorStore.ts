@@ -28,6 +28,7 @@ export interface LogEntry {
 }
 
 export type QualityPreference = 'auto' | 'high' | 'low';
+export type QualityTier = 'high' | 'low';
 
 export interface UiPreferences {
   /** Mode « Inspection académique » (étiquettes + panneau théorie). */
@@ -39,6 +40,8 @@ export interface UiPreferences {
   quality: QualityPreference;
   /** Fiche théorique ouverte dans le tiroir (null = tiroir fermé). */
   theorySheet: SheetId | null;
+  /** Met la simulation en pause quand l'onglet est masqué, la relance au retour (S7-L04). */
+  autoPauseHidden: boolean;
 }
 
 export const MAX_ALARM_HISTORY = 200;
@@ -63,6 +66,8 @@ export interface ReactorStoreState {
   /** État de l'installation notifié par le moteur (pompe, alimentation, quench). */
   plant: { pumpOn: boolean; feedFactor: number; quenchActive: boolean };
   ui: UiPreferences;
+  /** Niveau de qualité effectif mesuré à l'exécution (qualité adaptative, S7-L02). */
+  qualityTier: QualityTier;
 }
 
 export interface ReactorStoreActions {
@@ -81,6 +86,7 @@ export interface ReactorStoreActions {
   setError(message: string | null): void;
   setQuenchArmed(armed: boolean): void;
   patchUi(patch: Partial<UiPreferences>): void;
+  setQualityTier(tier: QualityTier): void;
   /** Efface alarmes, journal, rupture et erreur (nouvelle session de simulation). */
   clearSession(): void;
 }
@@ -108,7 +114,9 @@ const initialState = (): ReactorStoreState => ({
     reducedMotion: false,
     quality: 'auto',
     theorySheet: null,
+    autoPauseHidden: true,
   },
+  qualityTier: 'high',
 });
 
 export const useReactorStore = create<ReactorStoreState & ReactorStoreActions>()((set) => ({
@@ -141,6 +149,7 @@ export const useReactorStore = create<ReactorStoreState & ReactorStoreActions>()
   setError: (error) => set({ error }),
   setQuenchArmed: (quenchArmed) => set({ quenchArmed }),
   patchUi: (patch) => set((s) => ({ ui: { ...s.ui, ...patch } })),
+  setQualityTier: (qualityTier) => set({ qualityTier }),
 
   clearSession: () =>
     set({

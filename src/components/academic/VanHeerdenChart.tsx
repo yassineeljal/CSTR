@@ -181,6 +181,7 @@ export function VanHeerdenChart() {
         role="img"
         aria-label="Diagramme de Van Heerden : chaleur générée et évacuée en fonction de la température, états stationnaires et point de fonctionnement"
         data-testid="vanheerden"
+        className="min-h-[190px]"
       />
       <p className="text-muted mt-1 flex flex-wrap gap-x-3 font-mono text-[10px]">
         <span className="text-alarm">━ Q générée</span>

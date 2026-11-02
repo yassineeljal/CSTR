@@ -2,7 +2,7 @@
 
 Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versionnage sémantique.
 
-## [Non publié]
+## [1.0.0] — 2026-11-01
 
 ### Ajouté
 
@@ -20,7 +20,11 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versionnage
 
 ### Corrigé
 
+- Mesure du rendu : `renderer.info` était remis à zéro à chaque passe de post-traitement ; ombres de contact statiques (164 → 90 draw calls) ; bornes de la qualité adaptative recalées.
+
 - Notebook 02 : le texte sur les bifurcations en T_c était inversé (l'état bas disparaît à T_c élevée, l'état haut à T_c basse) ; détecté par le test de Van Heerden TypeScript.
+
+- **Sprint 7** — production : rendu 3D à la demande (ADR-006), qualité adaptative (ADR-007), chargement différé de KaTeX/Markdown (JS initial 406 → 211 ko gzip), repli 2D sans WebGL + boundary d'erreur, pause automatique de l'onglet masqué, mode kiosque, SEO/Open Graph, icônes, `docs/perf.md` (soak 10 min sur GPU), CI avec vérification des trajectoires golden, README final, licence MIT.
 
 ### Modifié (écarts par rapport au plan, voir `docs/model.md` §2)
 

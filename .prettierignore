@@ -8,3 +8,6 @@ test-results
 *.glb
 notebooks/.venv
 notebooks
+public/draco
+tools/blender/geometry.json
+test-results

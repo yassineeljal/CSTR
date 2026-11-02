@@ -42,3 +42,15 @@ test('mode inspection : étiquettes KaTeX, tiroir de théorie, Van Heerden en di
   await page.keyboard.press('i');
   await expect(page.getByTestId('inspect-label-matter')).toHaveCount(0);
 });
+
+test('mode kiosque : scène seule, sans interface', async ({ page }) => {
+  await page.setViewportSize({ width: 1200, height: 630 });
+  await page.goto('/?kiosk=1&scenario=cold-start&speed=10&autostart=1');
+  await expect(page.locator('html[data-scene="ready"]')).toBeAttached({ timeout: 30_000 });
+  await expect(page.getByTestId('reactor-canvas')).toBeVisible();
+  await expect(page.getByTestId('run-toggle')).toHaveCount(0);
+  await expect(page.getByTestId('cutaway-toggle')).toHaveCount(0);
+  const box = await page.getByTestId('reactor-canvas').boundingBox();
+  expect(box?.width).toBeGreaterThan(1100);
+  expect(box?.height).toBeGreaterThan(600);
+});
