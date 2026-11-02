@@ -14,6 +14,8 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versionnage
 
 - **Sprint 4** — shaders et effets : fluide (vortex ∝ rpm², ondulation d'ébullition, rampe thermique, émission > 1 au-delà de ~400 K), film d'enveloppe animé (bandes ∝ F_c, figées en panne de pompe), bulles instanciées (≤ 2000, GPU), panache de vapeur, vibration ∝ (T − T_HH)⁺, Bloom + vignette + ACES, écran de rupture, liens directs `/?scenario=…&speed=…&autostart=1`.
 
+- **Sprint 5** — poste de contrôle SCADA : commandes procédé (T, C_A, F, RPM, pompe, vanne d'alimentation), PID (Auto/Manuel sans à-coup, gains, consigne), quench en deux temps, mesures 10 Hz colorées par niveau d'alarme, 4 courbes uPlot (tampon préalloué, 30 Hz max), alarmes ISA-18.2 (acquittement, retour à la normale non acquitté), journal, 4 scénarios, presets localStorage + export/import JSON validés, raccourcis clavier, e2e du parcours complet (scénario 2 → HH → quench → pas de rupture).
+
 ### Modifié (écarts par rapport au plan, voir `docs/model.md` §2)
 
 - Capacité thermique de paroi `C_w`, enveloppe redimensionnée (V_j = 5 L, T_c,in = 278 K), seuils H/HH = 365/380 K, quench avec arrêt d'alimentation, soupape sous-dimensionnée.

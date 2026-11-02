@@ -8,6 +8,15 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  /* Charte SCADA (inspirée ISA-101 : fond neutre, couleurs réservées aux états anormaux) */
+  --color-panel: #12171c;
+  --color-panel-2: #181e24;
+  --color-line: #2a333c;
+  --color-muted: #8b98a5;
+  --color-accent: #22d3ee;
+  --color-warn: #fbbf24;
+  --color-alarm: #f43f5e;
+  --color-ok: #34d399;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -37,4 +46,41 @@ body {
     animation: none;
     opacity: 0;
   }
+}
+
+/* Valeurs numériques : niveau d'alarme posé par le moteur de lecture à 10 Hz (data-level) */
+[data-level='1'] {
+  color: var(--color-warn);
+}
+[data-level='2'] {
+  color: var(--color-alarm);
+  font-weight: 600;
+}
+
+/* Alarme non acquittée : clignotement 1 Hz, retiré si l'utilisateur réduit les animations */
+@keyframes alarm-blink {
+  50% {
+    opacity: 0.35;
+  }
+}
+.alarm-unacked {
+  animation: alarm-blink 1s steps(2, jump-none) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .alarm-unacked {
+    animation: none;
+  }
+}
+[data-reduced-motion='true'] .alarm-unacked,
+[data-reduced-motion='true'] .rupture-flash {
+  animation: none;
+}
+
+/* uPlot : adaptation au thème sombre */
+.uplot,
+.uplot * {
+  box-sizing: border-box;
+}
+.u-legend {
+  display: none;
 }

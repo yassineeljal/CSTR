@@ -24,6 +24,10 @@ export const molPerM3ToMolPerL = (c: number): number => c / 1000;
 /** Fraction [0..1] → pourcentage. */
 export const fractionToPercent = (f: number): number => f * 100;
 
+/** L/s → L/min et inverse (affichage des débits). */
+export const lpsToLpm = (lps: number): number => lps * 60;
+export const lpmToLps = (lpm: number): number => lpm / 60;
+
 /** W → kW. */
 export const wattsToKilowatts = (w: number): number => w / 1000;
 

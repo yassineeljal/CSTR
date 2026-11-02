@@ -4,6 +4,8 @@ import {
   celsiusToKelvin,
   formatSimTime,
   fractionToPercent,
+  lpmToLps,
+  lpsToLpm,
   kelvinToCelsius,
   minutesToSeconds,
   molPerLToMolPerM3,
@@ -37,6 +39,10 @@ describe('units', () => {
   it('fraction → %, W → kW', () => {
     expect(fractionToPercent(0.3)).toBeCloseTo(30, 12);
     expect(wattsToKilowatts(41667)).toBeCloseTo(41.667, 9);
+  });
+  it('L/s ↔ L/min', () => {
+    expect(lpsToLpm(100 / 60)).toBeCloseTo(100, 12);
+    expect(lpmToLps(lpsToLpm(0.37))).toBeCloseTo(0.37, 12);
   });
   it('formatSimTime', () => {
     expect(formatSimTime(0)).toBe('00:00');

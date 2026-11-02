@@ -31,7 +31,17 @@ export type WorkerCommand =
 // ---------------------------------------------------------------- Worker → UI
 export type WorkerEvent =
   | { type: 'pong'; token: number }
-  | { type: 'status'; status: EngineStatus; mode: ControlMode }
+  | {
+      type: 'status';
+      status: EngineStatus;
+      mode: ControlMode;
+      /** Pompe d'eau froide en marche (η > 0). */
+      pumpOn: boolean;
+      /** Ouverture de la vanne d'alimentation [0..1]. */
+      feedFactor: number;
+      /** Injection de quench en cours. */
+      quenchActive: boolean;
+    }
   | { type: 'snapshot'; buffer: Float64Array } // disposition SNAPSHOT_LAYOUT
   | { type: 'alarm'; alarm: AlarmEvent }
   | { type: 'scenarioEvent'; label: string; simTimeS: number }

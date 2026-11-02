@@ -1,26 +1,31 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useSimulation } from '@/hooks/useSimulation';
-import { TIME_SCALES } from '@/simulation/protocol';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { SCENARIOS } from '@/simulation/scenarios';
+import { TIME_SCALES } from '@/simulation/protocol';
 import type { ScenarioId } from '@/simulation/types';
 import { useReactorStore } from '@/store/useReactorStore';
+import { AlarmBanner, AlarmHistory } from './AlarmBanner';
+import { ControlPanel } from './ControlPanel';
+import { LiveReadouts } from './LiveReadouts';
+import { PidPanel } from './PidPanel';
+import { PresetsPanel } from './PresetsPanel';
+import { QuenchButton } from './QuenchButton';
 import { ReactorStage } from './ReactorStage';
 import { RuptureOverlay } from './RuptureOverlay';
+import { ScenarioSelector } from './ScenarioSelector';
+import { ShortcutHelp } from './ShortcutHelp';
+import { SimulationProvider, useSim } from './SimulationContext';
+import { TelemetryCharts } from './TelemetryCharts';
+import { TimeControls } from './TimeControls';
 
 const btn =
-  'rounded border border-zinc-600 bg-zinc-900/80 px-3 py-1.5 font-mono text-xs font-medium text-zinc-200 backdrop-blur hover:bg-zinc-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 disabled:opacity-40';
+  'rounded border border-line bg-panel/90 px-3 py-1.5 font-mono text-xs font-medium text-zinc-200 backdrop-blur hover:bg-line focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent';
 
-/** Mise en page plein écran : scène 3D en fond, commandes superposées (le HUD complet = Sprint 5). */
-export function HudLayout() {
-  const sim = useSimulation();
-  const status = useReactorStore((s) => s.status);
-  const cutaway = useReactorStore((s) => s.ui.cutaway);
-  const timeScale = useReactorStore((s) => s.timeScale);
-  const patchUi = useReactorStore((s) => s.patchUi);
-
-  // Liens directs : /?scenario=pump-failure&speed=10&autostart=1 (démos, captures, tests)
+/** Applique le lien direct (`?scenario=…&speed=…&autostart=1`) une fois le moteur prêt. */
+function DeepLink() {
+  const sim = useSim();
   useEffect(() => {
     if (!sim) return;
     const q = new URLSearchParams(window.location.search);
@@ -30,55 +35,104 @@ export function HudLayout() {
     sim.setTimeScale((TIME_SCALES as readonly number[]).includes(speed) ? speed : 10);
     if (q.get('autostart') === '1') sim.start();
   }, [sim]);
+  return null;
+}
 
+function Shortcuts() {
+  useKeyboardShortcuts(useSim());
+  return null;
+}
+
+/** Reflète « réduire les animations » sur <html> pour les règles CSS (clignotements, flash). */
+function MotionPreference() {
+  const reduced = useReactorStore((s) => s.ui.reducedMotion);
+  useEffect(() => {
+    document.documentElement.dataset.reducedMotion = String(reduced);
+  }, [reduced]);
+  return null;
+}
+
+function Scene() {
+  const sim = useSim();
+  const cutaway = useReactorStore((s) => s.ui.cutaway);
+  const reducedMotion = useReactorStore((s) => s.ui.reducedMotion);
+  const patchUi = useReactorStore((s) => s.patchUi);
   return (
-    <div className="relative h-dvh w-full overflow-hidden bg-[#0d1013]">
+    <main className="relative h-full min-h-[55vh] lg:min-h-0" aria-label="Vue 3D du réacteur">
       <div className="absolute inset-0">
         <ReactorStage />
       </div>
-      <header className="pointer-events-none absolute top-4 left-4 font-mono">
-        <h1 className="text-lg font-semibold tracking-tight text-zinc-100">CSTR Digital Twin</h1>
-        <p className="text-xs text-zinc-400">Réacteur agité continu — jumeau numérique 3D</p>
-      </header>
+      <AlarmBanner />
+      <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
+        <button
+          type="button"
+          className={btn}
+          aria-pressed={cutaway}
+          data-testid="cutaway-toggle"
+          onClick={() => patchUi({ cutaway: !cutaway })}
+        >
+          {cutaway ? 'Vue complète  [C]' : 'Vue en coupe  [C]'}
+        </button>
+        <button
+          type="button"
+          className={btn}
+          aria-pressed={reducedMotion}
+          onClick={() => patchUi({ reducedMotion: !reducedMotion })}
+        >
+          Réduire les animations
+        </button>
+      </div>
       <RuptureOverlay
         onRetry={() => {
           sim?.reset();
           sim?.start();
         }}
       />
-      <nav
-        aria-label="Commandes de simulation"
-        className="absolute bottom-4 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-2"
-      >
-        <button
-          className={btn}
-          disabled={!sim}
-          onClick={() => (status === 'running' ? sim?.pause() : sim?.start())}
-        >
-          {status === 'running' ? 'Pause' : 'Démarrer'}
-        </button>
-        <button className={btn} disabled={!sim} onClick={() => sim?.reset()}>
-          Réinitialiser
-        </button>
-        {TIME_SCALES.map((ts) => (
-          <button
-            key={ts}
-            className={`${btn} ${timeScale === ts ? 'border-cyan-400 text-cyan-300' : ''}`}
-            aria-pressed={timeScale === ts}
-            disabled={!sim}
-            onClick={() => sim?.setTimeScale(ts)}
+    </main>
+  );
+}
+
+/** Poste de contrôle : commandes à gauche, scène 3D au centre, mesures et courbes à droite. */
+export function HudLayout() {
+  return (
+    <SimulationProvider>
+      <DeepLink />
+      <Shortcuts />
+      <MotionPreference />
+      <div className="bg-background flex h-dvh flex-col overflow-y-auto text-zinc-200 lg:overflow-hidden">
+        <header className="border-line bg-panel flex flex-wrap items-center justify-between gap-3 border-b px-3 py-2">
+          <div className="font-mono">
+            <h1 className="text-sm font-semibold tracking-tight text-zinc-100">
+              CSTR Digital Twin
+            </h1>
+            <p className="text-muted text-[10px]">
+              Réacteur agité continu exothermique — poste de contrôle
+            </p>
+          </div>
+          <TimeControls />
+        </header>
+        <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)_390px]">
+          <aside
+            aria-label="Commandes"
+            className="order-2 space-y-2 overflow-y-auto p-2 lg:order-1"
           >
-            ×{ts}
-          </button>
-        ))}
-        <button
-          className={btn}
-          aria-pressed={cutaway}
-          onClick={() => patchUi({ cutaway: !cutaway })}
-        >
-          {cutaway ? 'Vue complète' : 'Vue en coupe'}
-        </button>
-      </nav>
-    </div>
+            <ScenarioSelector />
+            <QuenchButton />
+            <ControlPanel />
+            <PidPanel />
+            <PresetsPanel />
+            <ShortcutHelp />
+          </aside>
+          <div className="order-1 h-[60vh] min-h-0 lg:order-2 lg:h-auto">
+            <Scene />
+          </div>
+          <aside aria-label="Mesures et courbes" className="order-3 space-y-2 overflow-y-auto p-2">
+            <LiveReadouts />
+            <TelemetryCharts />
+            <AlarmHistory />
+          </aside>
+        </div>
+      </div>
+    </SimulationProvider>
   );
 }

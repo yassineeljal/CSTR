@@ -17,6 +17,9 @@ export class SimulationHost {
   private lastTickMs: number | null = null;
   private lastStatus: EngineStatus | null = null;
   private lastMode: ControlMode | null = null;
+  private lastPump: boolean | null = null;
+  private lastFeed: number | null = null;
+  private lastQuench: boolean | null = null;
 
   constructor(private readonly post: PostFn) {
     this.engine = SimulationHost.defaultEngine();
@@ -113,10 +116,29 @@ export class SimulationHost {
   /** Publie événements, changement de statut et snapshot. */
   private flush(): void {
     for (const ev of this.engine.takeEvents()) this.post(ev);
-    if (this.engine.status !== this.lastStatus || this.engine.mode !== this.lastMode) {
-      this.lastStatus = this.engine.status;
-      this.lastMode = this.engine.mode;
-      this.post({ type: 'status', status: this.lastStatus, mode: this.lastMode });
+    const e = this.engine;
+    const pumpOn = e.inputs.pumpEfficiency > 0;
+    const feed = Math.round(e.inputs.feedFactor * 100) / 100;
+    if (
+      e.status !== this.lastStatus ||
+      e.mode !== this.lastMode ||
+      pumpOn !== this.lastPump ||
+      feed !== this.lastFeed ||
+      e.quenchActive !== this.lastQuench
+    ) {
+      this.lastStatus = e.status;
+      this.lastMode = e.mode;
+      this.lastPump = pumpOn;
+      this.lastFeed = feed;
+      this.lastQuench = e.quenchActive;
+      this.post({
+        type: 'status',
+        status: e.status,
+        mode: e.mode,
+        pumpOn,
+        feedFactor: feed,
+        quenchActive: e.quenchActive,
+      });
     }
     const buffer = new Float64Array(SNAPSHOT_SIZE);
     this.engine.writeSnapshot(buffer);

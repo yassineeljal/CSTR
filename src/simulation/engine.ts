@@ -150,6 +150,10 @@ export class SimulationEngine {
   get pidIntegral(): number {
     return this.pid.integralState;
   }
+  /** `true` pendant l'injection du quench. */
+  get quenchActive(): boolean {
+    return this.quenchStepsLeft > 0;
+  }
   get activeScenario(): ScenarioDefinition | null {
     return this.scenario;
   }

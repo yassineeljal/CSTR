@@ -57,6 +57,8 @@ export interface ReactorStoreState {
   error: string | null;
   /** Quench armé (premier clic) mais pas encore déclenché. */
   quenchArmed: boolean;
+  /** État de l'installation notifié par le moteur (pompe, alimentation, quench). */
+  plant: { pumpOn: boolean; feedFactor: number; quenchActive: boolean };
   ui: UiPreferences;
 }
 
@@ -65,6 +67,7 @@ export interface ReactorStoreActions {
   patchPid(patch: Partial<PidSettings>): void;
   setMode(mode: ControlMode): void;
   setStatus(status: EngineStatus, mode?: ControlMode): void;
+  setPlant(plant: Partial<ReactorStoreState['plant']>): void;
   setTimeScale(value: number): void;
   setManualValve(value: number): void;
   setScenario(id: ScenarioId | null): void;
@@ -95,6 +98,7 @@ const initialState = (): ReactorStoreState => ({
   rupture: null,
   error: null,
   quenchArmed: false,
+  plant: { pumpOn: true, feedFactor: 1, quenchActive: false },
   ui: { inspectionMode: false, cutaway: true, reducedMotion: false, quality: 'auto' },
 });
 
@@ -105,6 +109,7 @@ export const useReactorStore = create<ReactorStoreState & ReactorStoreActions>()
   patchPid: (patch) => set((s) => ({ pid: { ...s.pid, ...patch } })),
   setMode: (mode) => set({ mode }),
   setStatus: (status, mode) => set((s) => ({ status, mode: mode ?? s.mode })),
+  setPlant: (plant) => set((s) => ({ plant: { ...s.plant, ...plant } })),
   setTimeScale: (timeScale) => set({ timeScale }),
   setManualValve: (manualValve) => set({ manualValve }),
   setScenario: (scenarioId) => set({ scenarioId }),

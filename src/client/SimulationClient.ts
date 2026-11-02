@@ -9,6 +9,7 @@ import type {
 import { SEBORG_STEADY_STATE } from '@/simulation/presets/seborgBenchmark';
 import { useReactorStore } from '@/store/useReactorStore';
 import { simRef, simVersion } from './simRef';
+import { sampleTelemetry } from './telemetry';
 import type { SimulationTransport } from './transport';
 
 /**
@@ -34,9 +35,15 @@ export class SimulationClient {
         // Copie dans le tampon réutilisé : pas d'allocation, pas de setState (PLAN §5.4).
         simRef.current.set(e.buffer.subarray(0, SNAPSHOT_SIZE));
         simVersion.current++;
+        sampleTelemetry(simRef.current);
         break;
       case 'status':
         store.setStatus(e.status, e.mode);
+        store.setPlant({
+          pumpOn: e.pumpOn,
+          feedFactor: e.feedFactor,
+          quenchActive: e.quenchActive,
+        });
         break;
       case 'alarm':
         store.pushAlarm(e.alarm);
