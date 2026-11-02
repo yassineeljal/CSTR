@@ -14,7 +14,8 @@ from pathlib import Path
 
 import numpy as np
 
-from cstr_model import Inputs, Params, simulate
+from cstr_model import Inputs, Params, simulate, steady_states_level1
+from presets_py import propylene_oxide
 
 OUT = Path(__file__).resolve().parent.parent / "tests" / "golden"
 
@@ -37,7 +38,7 @@ def ts_params(p: Params) -> dict:
     return d
 
 
-def case(name, description, p, x0, valve, t_end, events=None):
+def case(name, description, p, x0, valve, t_end, events=None, preset="seborg"):
     events = events or []
     u = Inputs(valve_cmd=valve)
     # Les événements Python utilisent les noms Inputs ; on les traduit pour TS.
@@ -52,6 +53,7 @@ def case(name, description, p, x0, valve, t_end, events=None):
         ts_events.append({"t": te, "set": ts_ev})
     data = {
         "name": name,
+        "preset": preset,
         "description": description,
         "params": ts_params(p),
         "initialState": dict(zip(["CA", "T", "Tj", "v"], map(float, x0))),
@@ -92,6 +94,19 @@ def main():
     case("l2_low_agitation",
          "Niveau 2, agitation réduite de moitié (N = 60 tr/min) : U·A ∝ N^(2/3) baisse.",
          p2.with_(rpm=60.0), ss2, 0.3, 90)
+    # --- Hydrolyse de l'oxyde de propylène (second jeu de paramètres, S1-C01) ---
+    po1 = propylene_oxide().with_(level=1)
+    ca_m, t_m = steady_states_level1(po1)[1]
+    case("po_l1_ignition",
+         "Oxyde de propylène, niveau 1 : +0,3 K sur l'état stationnaire instable (326,8 K) ⇒ allumage vers l'état haut (353,7 K).",
+         po1, [ca_m, t_m + 0.3, 285.0, 0.0], 0.0, 1500, preset="propyleneOxide")
+    case("po_l1_extinction",
+         "Oxyde de propylène, niveau 1 : −0,3 K ⇒ extinction vers l'état bas (302,5 K).",
+         po1, [ca_m, t_m - 0.3, 285.0, 0.0], 0.0, 1500, preset="propyleneOxide")
+    po2 = propylene_oxide()
+    case("po_l2_pump_failure",
+         "Oxyde de propylène, niveau 2, vanne à 30 %, panne de pompe à t = 20 s.",
+         po2, [ca_m, t_m, 285.0, 0.3], 0.3, 900, events=[(20.0, {"pump_eff": 0.0})], preset="propyleneOxide")
     case("l2_feed_perturbation",
          "Niveau 2, vanne fixe à 60 %, débit d'alimentation +20 % (F = 2,0 L/s).",
          p2.with_(F=2.0), ss2, 0.6, 240)

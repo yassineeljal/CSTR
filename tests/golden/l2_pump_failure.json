@@ -1,5 +1,6 @@
 {
   "name": "l2_pump_failure",
+  "preset": "seborg",
   "description": "Niveau 2, vanne fixe \u00e0 30 %, panne de pompe \u00e0 t = 10 s : l'enveloppe se r\u00e9chauffe, T diverge.",
   "params": {
     "volumeL": 100.0,

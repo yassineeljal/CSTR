@@ -1,5 +1,6 @@
 {
   "name": "l1_open_loop_minus_half_kelvin",
+  "preset": "seborg",
   "description": "Niveau 1, \u22120,5 K : extinction vers l'\u00e9tat stationnaire bas (324,5 K).",
   "params": {
     "volumeL": 100.0,

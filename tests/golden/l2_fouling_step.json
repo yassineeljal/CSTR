@@ -1,5 +1,6 @@
 {
   "name": "l2_fouling_step",
+  "preset": "seborg",
   "description": "Niveau 2, vanne fixe, encrassement brusque f = 0,6 \u00e0 t = 5 s.",
   "params": {
     "volumeL": 100.0,

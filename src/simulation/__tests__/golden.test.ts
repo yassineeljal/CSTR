@@ -2,6 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { SimulationEngine } from '../engine';
+import { PROPYLENE_OXIDE_PARAMS } from '../presets/propyleneOxide';
 import { SEBORG_PARAMS, SEBORG_PID } from '../presets/seborgBenchmark';
 import type { ReactorParams, ReactorState } from '../types';
 
@@ -11,6 +12,7 @@ import type { ReactorParams, ReactorState } from '../types';
  */
 interface Golden {
   name: string;
+  preset: 'seborg' | 'propyleneOxide';
   params: ReactorParams;
   initialState: ReactorState;
   valveCmd: number;
@@ -81,15 +83,24 @@ describe('golden : moteur TS vs SciPy', () => {
     });
   }
 
-  it('le preset TypeScript est identique aux paramètres du modèle Python (valeurs partagées)', () => {
-    const g = JSON.parse(readFileSync(path.join(dir, 'l2_pump_failure.json'), 'utf8')) as Golden;
-    const keys = Object.keys(g.params) as (keyof ReactorParams)[];
-    expect(keys.length).toBeGreaterThan(25);
-    for (const key of keys) {
-      if (key === 'reliefEnabled') continue; // désactivée volontairement pour la référence
-      const ts = SEBORG_PARAMS[key];
-      const py = g.params[key];
-      expect(typeof ts === 'number' ? ts : -1, String(key)).toBeCloseTo(py as number, 9);
-    }
-  });
+  const PRESETS = { seborg: SEBORG_PARAMS, propyleneOxide: PROPYLENE_OXIDE_PARAMS } as const;
+
+  for (const file of files) {
+    const g = JSON.parse(readFileSync(path.join(dir, file), 'utf8')) as Golden;
+    it(`${g.name} : le preset « ${g.preset} » TypeScript égale les paramètres Python`, () => {
+      const ts = PRESETS[g.preset];
+      const keys = Object.keys(g.params) as (keyof ReactorParams)[];
+      expect(keys.length).toBeGreaterThan(25);
+      for (const key of keys) {
+        if (key === 'reliefEnabled' || key === 'rpm') continue; // surchargés volontairement par certains cas
+        const tsValue = ts[key];
+        const pyValue = g.params[key];
+        if (typeof tsValue !== 'number' || typeof pyValue !== 'number') continue;
+        const scale = Math.max(Math.abs(pyValue), 1e-300);
+        // Cas qui surchargent un paramètre à dessein (F, rpm, niveau) : ignorés
+        if (['feedFlowLps', 'modelLevel'].includes(key)) continue;
+        expect(Math.abs(tsValue - pyValue) / scale, `${g.name}.${String(key)}`).toBeLessThan(1e-9);
+      }
+    });
+  }
 });

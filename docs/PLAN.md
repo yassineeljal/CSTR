@@ -26,6 +26,23 @@
 
 ---
 
+## 📊 Statut d'avancement
+
+| Sprint | Statut | Notes |
+| --- | --- | --- |
+| 0 — Fondations | ✅ terminé | CI, ADR, Vitest, Playwright |
+| 1 — Modèle validé | ✅ terminé | Notebooks 01–02, deux presets, `docs/model.md` |
+| 2 — Moteur RK4 + PID | ✅ terminé | 150+ tests, golden < 3·10⁻⁸, `/debug`, worker ≈ 60 Hz |
+| 3 — Scène 3D | ⏳ à faire | |
+| 4 — Shaders & effets | ⏳ à faire | |
+| 5 — SCADA & scénarios | ⏳ à faire | |
+| 6 — Inspection académique | ⏳ à faire | |
+| 7 — Production | ⏳ à faire | |
+
+> Les écarts de modèle décidés en cours de route (capacité de paroi, enveloppe, seuils d'alarme, quench) sont listés avec leur justification dans [`docs/model.md`](model.md) §2. Le §4.6 ci-dessous reste le jeu *de départ* du plan.
+
+---
+
 ## 0. Instructions pour l'agent IA (À LIRE EN PREMIER)
 
 Ce README est la **source de vérité** du projet. Tu (l'agent IA) dois le suivre dans l'ordre.

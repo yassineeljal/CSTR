@@ -1,5 +1,6 @@
 {
   "name": "l1_cold_start",
+  "preset": "seborg",
   "description": "Niveau 1, d\u00e9marrage \u00e0 froid en boucle ouverte (oscillations amorties vers 324,5 K).",
   "params": {
     "volumeL": 100.0,

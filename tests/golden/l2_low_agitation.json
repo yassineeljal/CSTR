@@ -1,5 +1,6 @@
 {
   "name": "l2_low_agitation",
+  "preset": "seborg",
   "description": "Niveau 2, agitation r\u00e9duite de moiti\u00e9 (N = 60 tr/min) : U\u00b7A \u221d N^(2/3) baisse.",
   "params": {
     "volumeL": 100.0,

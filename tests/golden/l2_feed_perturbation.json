@@ -1,5 +1,6 @@
 {
   "name": "l2_feed_perturbation",
+  "preset": "seborg",
   "description": "Niveau 2, vanne fixe \u00e0 60 %, d\u00e9bit d'alimentation +20 % (F = 2,0 L/s).",
   "params": {
     "volumeL": 100.0,

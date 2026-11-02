@@ -1,5 +1,6 @@
 {
   "name": "l1_open_loop_plus_half_kelvin",
+  "preset": "seborg",
   "description": "Niveau 1, +0,5 K sur le point instable : divergence vers l'\u00e9tat stationnaire haut (\u2248 370 K).",
   "params": {
     "volumeL": 100.0,
