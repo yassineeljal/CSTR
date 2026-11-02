@@ -22,7 +22,7 @@ OUT = Path(__file__).resolve().parent.parent / "tests" / "golden"
 TS_NAMES = {
     "V": "volumeL", "F": "feedFlowLps", "CAin": "caInMolL", "Tin": "tInK",
     "k0": "k0PerS", "EaR": "eaOverRK", "dHr": "deltaHrJMol", "rho": "rhoGL", "cp": "cpJGK",
-    "UAref": "uaRefWK", "UAmin": "uaMinWK", "uexp": "uExponent", "rpm": "rpm", "rpmRef": "rpmRef",
+    "UAref": "uaRefWK", "UAmin": "uaMinWK", "uexp": "uExponent", "rpm": "rpm", "rpmRef": "rpmRef", "Cw": "vesselHeatCapacityJK",
     "Tc": "tcK", "Vj": "jacketVolumeL", "rhoj": "jacketRhoGL", "cpj": "jacketCpJGK",
     "Tcin": "tcInK", "Fcmax": "fcMaxLps", "tauV": "valveTauS", "rMax": "valveRateMaxPerS",
     "Pinert": "inertPressurePa", "Patm": "atmPressurePa", "Pset": "reliefSetPressurePa",
@@ -48,7 +48,7 @@ def case(name, description, p, x0, valve, t_end, events=None):
     for te, ev in events:
         ts_ev = {}
         for k, v in ev.items():
-            ts_ev[{"pump_eff": "pumpEfficiency", "fouling": "fouling", "inhibitor": "inhibitorFactor"}[k]] = v
+            ts_ev[{"pump_eff": "pumpEfficiency", "fouling": "fouling", "inhibitor": "inhibitorFactor", "feed_factor": "feedFactor"}[k]] = v
         ts_events.append({"t": te, "set": ts_ev})
     data = {
         "name": name,
@@ -75,26 +75,26 @@ def main():
     ss2 = [0.5, 350.0, 300.0, 0.3]
 
     case("l1_open_loop_plus_half_kelvin",
-         "Niveau 1, +0,5 K sur le point instable : divergence exponentielle (λ ≈ +2,83 min⁻¹).",
-         p1, [0.5, 350.5, 300.0, 0.0], 0.0, 60)
+         "Niveau 1, +0,5 K sur le point instable : divergence vers l'état stationnaire haut (≈ 370 K).",
+         p1, [0.5, 350.5, 300.0, 0.0], 0.0, 900)
     case("l1_open_loop_minus_half_kelvin",
          "Niveau 1, −0,5 K : extinction vers l'état stationnaire bas (324,5 K).",
-         p1, [0.5, 349.5, 300.0, 0.0], 0.0, 300)
+         p1, [0.5, 349.5, 300.0, 0.0], 0.0, 900)
     case("l1_cold_start",
          "Niveau 1, démarrage à froid en boucle ouverte (oscillations amorties vers 324,5 K).",
-         p1, [0.0, 300.0, 300.0, 0.0], 0.0, 300)
+         p1, [0.0, 300.0, 300.0, 0.0], 0.0, 600)
     case("l2_pump_failure",
          "Niveau 2, vanne fixe à 30 %, panne de pompe à t = 10 s : l'enveloppe se réchauffe, T diverge.",
-         p2, ss2, 0.3, 30, events=[(10.0, {"pump_eff": 0.0})])
+         p2, ss2, 0.3, 90, events=[(10.0, {"pump_eff": 0.0})])
     case("l2_fouling_step",
          "Niveau 2, vanne fixe, encrassement brusque f = 0,6 à t = 5 s.",
-         p2, ss2, 0.3, 45, events=[(5.0, {"fouling": 0.6})])
+         p2, ss2, 0.3, 90, events=[(5.0, {"fouling": 0.6})])
     case("l2_low_agitation",
          "Niveau 2, agitation réduite de moitié (N = 60 tr/min) : U·A ∝ N^(2/3) baisse.",
-         p2.with_(rpm=60.0), ss2, 0.3, 45)
+         p2.with_(rpm=60.0), ss2, 0.3, 90)
     case("l2_feed_perturbation",
          "Niveau 2, vanne fixe à 60 %, débit d'alimentation +20 % (F = 2,0 L/s).",
-         p2.with_(F=2.0), ss2, 0.6, 120)
+         p2.with_(F=2.0), ss2, 0.6, 240)
 
 
 if __name__ == "__main__":

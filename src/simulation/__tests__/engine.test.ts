@@ -82,20 +82,21 @@ describe('SimulationEngine — physique', () => {
     expect(Math.abs(CA(e) - 0.5)).toBeLessThan(0.01);
   });
 
-  it('S2-L08 : niveau 1, PID off, +0,5 K ⇒ divergence (point instable)', () => {
+  it('S2-L08 : niveau 1, PID off, +0,5 K ⇒ divergence vers l’état stationnaire haut (≈ 370 K)', () => {
     const e = make({ params: { modelLevel: 1 }, state: { T: 350.5, v: 0 } });
     e.setMode('manual');
-    let peak = 0;
-    run(e, 120, () => (peak = Math.max(peak, T(e))));
-    expect(peak).toBeGreaterThan(385); // l'écart de 0,5 K a été amplifié × 70
+    run(e, 900);
+    // le point à 350 K est instable : l'écart de 0,5 K est amplifié ×40 (bistabilité 324,5 / 370 K)
+    expect(T(e)).toBeGreaterThan(369);
+    expect(T(e)).toBeLessThan(371);
   });
 
   it('S2-L08 : niveau 1, −0,5 K ⇒ extinction vers l’état stationnaire bas (≈ 324,5 K)', () => {
     const e = make({ params: { modelLevel: 1 }, state: { T: 349.5, v: 0 } });
     e.setMode('manual');
-    run(e, 400);
+    run(e, 1500);
     expect(T(e)).toBeGreaterThan(324);
-    expect(T(e)).toBeLessThan(325);
+    expect(T(e)).toBeLessThan(325.5);
   });
 
   it('S2-L09 : niveau 2, PID on, perturbation de +3,5 K ⇒ retour à ±1 K en < 300 s', () => {
@@ -118,20 +119,24 @@ describe('SimulationEngine — physique', () => {
     expect(Math.abs(T(e) - 354)).toBeLessThan(0.3);
   });
 
-  it('conservation : sans réaction ni échange, C_A et T relaxent vers l’entrée avec τ = V/F', () => {
+  it('conservation : sans réaction ni échange, C_A et T relaxent vers l’entrée', () => {
     const e = make({
       params: { modelLevel: 1, k0PerS: 0, uaRefWK: 0, uaMinWK: 0 },
       state: { CA: 0, T: 300, v: 0 },
     });
     e.setMode('manual');
-    const tau = SEBORG_PARAMS.volumeL / SEBORG_PARAMS.feedFlowLps; // 60 s
+    const p = SEBORG_PARAMS;
+    const tauCA = p.volumeL / p.feedFlowLps; // 60 s
+    // T : capacité thermique liquide + paroi, alimentée par F·ρ·C_p
+    const tauT =
+      (p.volumeL * p.rhoGL * p.cpJGK + p.vesselHeatCapacityJK) /
+      (p.feedFlowLps * p.rhoGL * p.cpJGK);
     run(e, 60);
-    const decay = Math.exp(-e.simTimeS / tau);
-    expect(CA(e)).toBeCloseTo(SEBORG_PARAMS.caInMolL * (1 - decay), 6);
-    expect(T(e)).toBeCloseTo(SEBORG_PARAMS.tInK + (300 - SEBORG_PARAMS.tInK) * decay, 5);
-    run(e, 600);
-    expect(CA(e)).toBeCloseTo(SEBORG_PARAMS.caInMolL, 4);
-    expect(T(e)).toBeCloseTo(SEBORG_PARAMS.tInK, 2);
+    expect(CA(e)).toBeCloseTo(p.caInMolL * (1 - Math.exp(-e.simTimeS / tauCA)), 6);
+    expect(T(e)).toBeCloseTo(p.tInK + (300 - p.tInK) * Math.exp(-e.simTimeS / tauT), 5);
+    run(e, 2500); // ≈ 13 τ_T
+    expect(CA(e)).toBeCloseTo(p.caInMolL, 6);
+    expect(T(e)).toBeCloseTo(p.tInK, 2);
   });
 
   it('S4-L10 : baisser l’agitation fait monter T (boucle ouverte, niveau 2)', () => {
@@ -218,17 +223,26 @@ describe('SimulationEngine — alarmes, rupture, garde-fous', () => {
     return all;
   };
 
-  it('émet H puis HH à la montée, et leur retour à la normale', () => {
+  it('émet H à la montée vers l’état haut (370 K) mais pas HH', () => {
     const e = make({ params: { modelLevel: 1 }, state: { T: 350.5, v: 0 } });
     e.setMode('manual');
-    const events = collect(e, 400);
+    const events = collect(e, 900);
     const levels = events.flatMap((ev) =>
       ev.type === 'alarm' ? [`${ev.alarm.level}${ev.alarm.active ? '+' : '-'}`] : [],
     );
-    expect(levels.indexOf('H+')).toBeGreaterThanOrEqual(0);
-    expect(levels.indexOf('HH+')).toBeGreaterThan(levels.indexOf('H+'));
+    expect(levels).toEqual(['H+']);
+  });
+
+  it('HH puis son retour à la normale (bande morte), H restant actif', () => {
+    const e = make({ params: { modelLevel: 1 }, state: { CA: 0.2, T: 385, v: 0 } });
+    e.setMode('manual');
+    const events = collect(e, 300);
+    const levels = events.flatMap((ev) =>
+      ev.type === 'alarm' ? [`${ev.alarm.level}${ev.alarm.active ? '+' : '-'}`] : [],
+    );
+    expect(levels.slice(0, 2).sort()).toEqual(['H+', 'HH+']);
     expect(levels).toContain('HH-');
-    expect(levels).toContain('H-');
+    expect(levels).not.toContain('H-');
   });
 
   it('l’alarme LL est armée seulement après le démarrage (pas d’alarme à froid)', () => {
@@ -240,7 +254,7 @@ describe('SimulationEngine — alarmes, rupture, garde-fous', () => {
   it('rupture : statut « ruptured », événement émis, simulation figée', () => {
     const e = make({ params: { modelLevel: 1, tRuptureK: 360 }, state: { T: 358, v: 0 } });
     e.setMode('manual');
-    const events = collect(e, 200);
+    const events = collect(e, 400);
     expect(e.status).toBe('ruptured');
     expect(events.some((ev) => ev.type === 'rupture')).toBe(true);
     const t = e.simTimeS;

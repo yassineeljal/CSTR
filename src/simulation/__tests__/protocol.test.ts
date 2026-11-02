@@ -32,6 +32,7 @@ describe('validateCommand', () => {
   it('accepte les commandes valides', () => {
     expect(validateCommand({ type: 'start' })).toBeNull();
     expect(validateCommand({ type: 'setManualValve', value: 0.4 })).toBeNull();
+    expect(validateCommand({ type: 'setFeedFactor', value: 0 })).toBeNull();
     expect(validateCommand({ type: 'setTimeScale', value: 10 })).toBeNull();
     expect(
       validateCommand({ type: 'setParams', patch: { rpm: 100, reliefEnabled: false } }),
@@ -43,6 +44,7 @@ describe('validateCommand', () => {
     expect(validateCommand({ type: 'setManualValve', value: Number.NaN })).not.toBeNull();
     expect(validateCommand({ type: 'setManualValve', value: 1.2 })).not.toBeNull();
     expect(validateCommand({ type: 'setPumpEfficiency', value: -0.1 })).not.toBeNull();
+    expect(validateCommand({ type: 'setFeedFactor', value: 1.5 })).not.toBeNull();
     expect(validateCommand({ type: 'setTimeScale', value: 0 })).not.toBeNull();
     expect(
       validateCommand({ type: 'setTimeScale', value: Number.POSITIVE_INFINITY }),

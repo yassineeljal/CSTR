@@ -56,7 +56,8 @@ export function derivatives(
   const t = x[I_T] ?? 0;
   const tj = effectiveJacketTemp(x, p);
 
-  const dilution = p.feedFlowLps / p.volumeL; // F/V [s⁻¹]
+  const feedLps = p.feedFlowLps * inputs.feedFactor; // F effectif [L/s]
+  const dilution = feedLps / p.volumeL; // F/V [s⁻¹]
   const k = arrhenius(t, p.k0PerS * inputs.inhibitorFactor, p.eaOverRK);
   const rhoCp = p.rhoGL * p.cpJGK; // [J/(L·K)]
   const ua = heatTransferUA(p.rpm, inputs.fouling, p);
@@ -64,13 +65,17 @@ export function derivatives(
   // Bilan de matière — PLAN §4.3
   out[I_CA] = dilution * (p.caInMolL - ca) - k * ca;
 
-  // Bilan d'énergie du réacteur — PLAN §4.3 (+ terme de soupape §4.4)
+  // Bilan d'énergie du réacteur — PLAN §4.3 (+ terme de soupape §4.4, + paroi de cuve).
+  // Tous les termes en W, divisés par la capacité thermique totale liquide + paroi [J/K].
+  // Avec vesselHeatCapacityJK = 0 on retrouve exactement la forme du PLAN §4.3.
   const qRelief = p.reliefEnabled && inputs.reliefOpen === 1 ? reliefHeatW(t, p) : 0;
+  const heatCapacity = p.volumeL * rhoCp + p.vesselHeatCapacityJK;
   out[I_T] =
-    dilution * (p.tInK - t) +
-    (-p.deltaHrJMol * k * ca) / rhoCp -
-    (ua / (p.volumeL * rhoCp)) * (t - tj) -
-    qRelief / (p.volumeL * rhoCp);
+    (feedLps * rhoCp * (p.tInK - t) +
+      -p.deltaHrJMol * k * ca * p.volumeL -
+      ua * (t - tj) -
+      qRelief) /
+    heatCapacity;
 
   if (p.modelLevel === 1) {
     out[I_TJ] = 0;

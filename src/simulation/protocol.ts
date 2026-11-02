@@ -4,6 +4,7 @@
 import type {
   AlarmEvent,
   ControlMode,
+  EngineStatus,
   PidSettings,
   ReactorParams,
   ReactorState,
@@ -23,12 +24,14 @@ export type WorkerCommand =
   | { type: 'setManualValve'; value: number } // 0..1
   | { type: 'setTimeScale'; value: number }
   | { type: 'setPumpEfficiency'; value: number } // 0..1
+  | { type: 'setFeedFactor'; value: number } // 0..1
   | { type: 'loadScenario'; id: ScenarioId }
   | { type: 'quench' };
 
 // ---------------------------------------------------------------- Worker → UI
 export type WorkerEvent =
   | { type: 'pong'; token: number }
+  | { type: 'status'; status: EngineStatus; mode: ControlMode }
   | { type: 'snapshot'; buffer: Float64Array } // disposition SNAPSHOT_LAYOUT
   | { type: 'alarm'; alarm: AlarmEvent }
   | { type: 'scenarioEvent'; label: string; simTimeS: number }
@@ -88,8 +91,10 @@ export const SNAPSHOT_LAYOUT = {
   inhibitor: 22,
   /** Avancement du quench [0..1] (0 = inactif). */
   quench: 23,
+  /** Ouverture de la vanne d'alimentation [0..1]. */
+  feed: 24,
 } as const;
-export const SNAPSHOT_SIZE = 24;
+export const SNAPSHOT_SIZE = 25;
 
 export const STATUS_CODE = { ready: 0, running: 1, paused: 2, ruptured: 3, error: 4 } as const;
 
@@ -128,6 +133,10 @@ export function validateCommand(cmd: WorkerCommand): string | null {
       return isFiniteNumber(cmd.value) && cmd.value >= 0 && cmd.value <= 1
         ? null
         : 'setPumpEfficiency: valeur hors [0, 1]';
+    case 'setFeedFactor':
+      return isFiniteNumber(cmd.value) && cmd.value >= 0 && cmd.value <= 1
+        ? null
+        : 'setFeedFactor: valeur hors [0, 1]';
     case 'setTimeScale':
       return isFiniteNumber(cmd.value) && cmd.value > 0 && cmd.value <= 120
         ? null

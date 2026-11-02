@@ -41,6 +41,12 @@ export interface ReactorParams {
   cpJGK: number;
   /** Viscosité dynamique μ [Pa·s] (affichage de Re uniquement). */
   viscosityPaS: number;
+  /**
+   * Capacité thermique de la paroi de cuve (acier, agitateur) [J/K], en équilibre thermique avec
+   * le milieu. S'ajoute à V·ρ·C_p : ralentit la dynamique thermique sans changer les états
+   * stationnaires.
+   */
+  vesselHeatCapacityJK: number;
 
   // --- Échange thermique ---
   /** Produit U·A de référence à N_ref, paroi propre [J/(s·K)] = [W/K]. */
@@ -156,6 +162,8 @@ export interface Inputs {
   inhibitorFactor: number;
   /** 1 si la soupape est ouverte, 0 sinon. */
   reliefOpen: 0 | 1;
+  /** Ouverture de la vanne d'alimentation ∈ [0, 1] (1 = débit F nominal, 0 = alimentation coupée). */
+  feedFactor: number;
 }
 
 export type ControlMode = 'manual' | 'auto';
@@ -180,6 +188,8 @@ export interface AlarmEvent {
 
 /** Paramètres du quench (PLAN §4.8). */
 export interface QuenchParams {
+  /** Ferme la vanne d'alimentation au déclenchement (arrêt d'urgence). */
+  cutFeed: boolean;
   /** Volume de diluant injecté V_q [L]. */
   volumeL: number;
   /** Température du diluant T_q [K]. */

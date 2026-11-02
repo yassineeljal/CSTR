@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { SimulationEngine, type EngineEvent } from '../engine';
 import { SCENARIOS, SCENARIO_IDS } from '../scenarios';
-import { SEBORG_PARAMS, SEBORG_PID, SEBORG_STEADY_STATE } from '../presets/seborgBenchmark';
+import {
+  SEBORG_PARAMS,
+  SEBORG_PID,
+  SEBORG_QUENCH,
+  SEBORG_STEADY_STATE,
+} from '../presets/seborgBenchmark';
 import type { ScenarioId } from '../types';
 
 const make = (): SimulationEngine =>
@@ -81,7 +86,7 @@ describe('scénario 2 — panne de la pompe de refroidissement', () => {
     const e = make();
     e.loadScenario('pump-failure');
     let reliefSeen = false;
-    const tr = play(e, 120, () => (reliefSeen ||= e.inputs.reliefOpen === 1));
+    const tr = play(e, 400, () => (reliefSeen ||= e.inputs.reliefOpen === 1));
     expect(alarms(tr, 'H')).toBe(true);
     expect(alarms(tr, 'HH')).toBe(true);
     expect(reliefSeen).toBe(true);
@@ -140,20 +145,22 @@ describe('scénario 4 — quench d’urgence', () => {
   it('sans quench : le réacteur est perdu', () => {
     const e = make();
     e.loadScenario('emergency-quench');
-    expect(play(e, 60).rupturedAt).not.toBeNull();
+    expect(play(e, 400).rupturedAt).not.toBeNull();
   });
 
-  it('avec quench immédiat : T chute puis reste confiné pendant l’effet de l’inhibiteur', () => {
+  it('avec quench immédiat (diluant + arrêt de l’alimentation) : le réacteur est sauvé', () => {
     const e = make();
     e.loadScenario('emergency-quench');
     e.start();
     e.quench();
-    const tr = play(e, 150);
+    expect(e.inputs.feedFactor).toBe(0);
+    const tr = play(e, 600);
     expect(tr.rupturedAt).toBeNull();
-    expect(e.state[1] as number).toBeLessThan(380);
+    expect(tr.endT).toBeLessThan(360);
+    expect(e.state[0] as number).toBeLessThan(0.05); // le réactif résiduel est consommé
   });
 
-  it('le quench applique le bilan de mélange : C_A·V/(V+V_q) et (V·T+V_q·T_q)/(V+V_q)', () => {
+  it('le quench applique le bilan de mélange du plan : C_A·V/(V+V_q) et (V·T+V_q·T_q)/(V+V_q)', () => {
     const e = make();
     e.loadScenario('emergency-quench');
     const ca0 = e.state[0] as number;
@@ -161,15 +168,11 @@ describe('scénario 4 — quench d’urgence', () => {
     e.quench();
     e.setTimeScale(1);
     e.start();
-    e.advanceSteps(1);
-    // après l'injection complète (2 s = 200 pas) le mélange cumulé suit la formule du plan (§4.8)
-    e.advanceSteps(199);
+    e.advanceSteps(200); // injection complète (2 s) ; réaction quasi gelée par l'inhibiteur
     const V = SEBORG_PARAMS.volumeL;
-    const Vq = 60;
-    // 200 pas de réaction se superposent : on vérifie la dilution/le refroidissement avec marge
-    expect(e.state[0] as number).toBeLessThan(ca0 * (V / (V + Vq)) * 1.05);
-    expect(e.state[1] as number).toBeLessThan((V * t0 + Vq * 280) / (V + Vq) + 10);
-    expect(e.state[1] as number).toBeGreaterThan(300);
+    const Vq = SEBORG_QUENCH.volumeL;
+    expect(e.state[0] as number).toBeCloseTo(ca0 * (V / (V + Vq)), 2);
+    expect(e.state[1] as number).toBeCloseTo((V * t0 + Vq * SEBORG_QUENCH.tempK) / (V + Vq), 0);
   });
 
   it('un second quench pendant l’injection est ignoré', () => {

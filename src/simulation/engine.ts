@@ -73,6 +73,7 @@ export class SimulationEngine {
     fouling: 1,
     inhibitorFactor: 1,
     reliefOpen: 0,
+    feedFactor: 1,
   };
 
   params: ReactorParams;
@@ -104,6 +105,8 @@ export class SimulationEngine {
   // Quench
   private quenchStepsLeft = 0;
   private quenchStepsTotal = 0;
+  /** Volume de diluant déjà injecté pendant le quench en cours [L]. */
+  private quenchInjectedL = 0;
   private inhibitorUntilS = 0;
 
   // Alarmes
@@ -216,11 +219,17 @@ export class SimulationEngine {
     this.inputs.pumpEfficiency = clamp(value, 0, 1);
   }
 
+  /** Ouverture de la vanne d'alimentation [0..1] (le quench la ferme). */
+  setFeedFactor(value: number): void {
+    this.inputs.feedFactor = clamp(value, 0, 1);
+  }
+
   /** Déclenche le quench (injection de diluant froid, PLAN §4.8). Sans effet si déjà actif. */
   quench(): void {
     if (this.quenchStepsLeft > 0 || this.statusValue === 'ruptured') return;
     this.quenchStepsTotal = Math.max(1, Math.round(this.quenchParams.durationS / this.dtS));
     this.quenchStepsLeft = this.quenchStepsTotal;
+    if (this.quenchParams.cutFeed) this.inputs.feedFactor = 0;
     if (this.quenchParams.inhibitorFactor < 1) {
       this.inputs.inhibitorFactor = this.quenchParams.inhibitorFactor;
       this.inhibitorUntilS = this.simTimeS + this.quenchParams.inhibitorDurationS;
@@ -288,7 +297,7 @@ export class SimulationEngine {
     const ua = heatTransferUA(p.rpm, this.inputs.fouling, p);
     const reliefOpen = p.reliefEnabled && this.inputs.reliefOpen === 1;
     const qRelief = reliefOpen ? reliefHeatW(t, p) : 0;
-    const qFeed = p.feedFlowLps * p.rhoGL * p.cpJGK * (t - p.tInK);
+    const qFeed = p.feedFlowLps * this.inputs.feedFactor * p.rhoGL * p.cpJGK * (t - p.tInK);
 
     out[S.simTime] = this.simTimeS;
     out[S.CA] = ca;
@@ -313,6 +322,7 @@ export class SimulationEngine {
     out[S.status] = STATUS_CODE[this.statusValue];
     out[S.timeScale] = this.timeScale;
     out[S.inhibitor] = this.inputs.inhibitorFactor;
+    out[S.feed] = this.inputs.feedFactor;
     out[S.quench] = this.quenchStepsLeft > 0 ? 1 - this.quenchStepsLeft / this.quenchStepsTotal : 0;
   }
 
@@ -342,11 +352,13 @@ export class SimulationEngine {
     this.ramp = null;
     this.quenchStepsLeft = 0;
     this.quenchStepsTotal = 0;
+    this.quenchInjectedL = 0;
     this.inhibitorUntilS = 0;
     this.inputs.pumpEfficiency = 1;
     this.inputs.fouling = 1;
     this.inputs.inhibitorFactor = 1;
     this.inputs.reliefOpen = 0;
+    this.inputs.feedFactor = 1;
     this.alarmActive.LL = this.alarmActive.H = this.alarmActive.HH = false;
     this.llArmed = false;
     this.pid.reset();
@@ -446,11 +458,15 @@ export class SimulationEngine {
     const q = this.quenchParams;
     const x = this.state;
     const dV = q.volumeL / this.quenchStepsTotal; // volume injecté à ce pas [L]
-    const V = this.params.volumeL;
-    // Mélange avec débordement : C_A ← C_A·V/(V+dV), T ← (V·T + dV·T_q)/(V+dV) — PLAN §4.8
-    x[I_CA] = (x[I_CA] as number) * (V / (V + dV));
-    x[I_T] = (V * (x[I_T] as number) + dV * q.tempK) / (V + dV);
+    // Le diluant s'accumule dans la cuve pendant l'injection (volume V + V_inj), puis l'excédent
+    // déborde. Le cumul des mélanges donne exactement la formule du PLAN §4.8 :
+    //   C_A ← C_A·V/(V+V_q),  T ← (V·T + V_q·T_q)/(V+V_q).
+    const volume = this.params.volumeL + this.quenchInjectedL;
+    x[I_CA] = (x[I_CA] as number) * (volume / (volume + dV));
+    x[I_T] = (volume * (x[I_T] as number) + dV * q.tempK) / (volume + dV);
+    this.quenchInjectedL += dV;
     this.quenchStepsLeft--;
+    if (this.quenchStepsLeft === 0) this.quenchInjectedL = 0; // débordement du surplus
   }
 
   private processScenario(now: number): void {

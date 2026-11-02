@@ -9,6 +9,7 @@ const inputs = (over: Partial<Inputs> = {}): Inputs => ({
   fouling: 1,
   inhibitorFactor: 1,
   reliefOpen: 0,
+  feedFactor: 1,
   ...over,
 });
 const deriv = (x: number[], p: ReactorParams, u: Inputs): Float64Array => {
@@ -40,16 +41,44 @@ describe('derivatives', () => {
     expect(d[0]).toBeCloseTo((P.feedFlowLps / P.volumeL) * (P.caInMolL - 0.2), 12);
   });
 
-  it('sans réaction ni échange, T relaxe vers T_in avec la constante F/V', () => {
+  it('sans réaction ni échange, T relaxe vers T_in avec la constante F·ρ·C_p/(V·ρ·C_p + C_paroi)', () => {
     const p = { ...P, modelLevel: 1 as const, k0PerS: 0, uaRefWK: 0, uaMinWK: 0 };
     const d = deriv([0, 300, 300, 0], p, inputs());
-    expect(d[1]).toBeCloseTo((P.feedFlowLps / P.volumeL) * (P.tInK - 300), 12);
+    const heatCapacity = P.volumeL * P.rhoGL * P.cpJGK + P.vesselHeatCapacityJK;
+    expect(d[1]).toBeCloseTo(
+      ((P.feedFlowLps * P.rhoGL * P.cpJGK) / heatCapacity) * (P.tInK - 300),
+      12,
+    );
   });
 
   it("la panne de pompe supprime l'apport d'eau froide : T_j monte plus vite", () => {
     const ok = deriv([SS.CA, SS.T, SS.Tj, SS.v], P, inputs());
     const down = deriv([SS.CA, SS.T, SS.Tj, SS.v], P, inputs({ pumpEfficiency: 0 }));
     expect(down[2] as number).toBeGreaterThan((ok[2] as number) + 0.5);
+  });
+
+  it("la vanne d'alimentation fermée coupe l'apport de réactif et de chaleur sensible", () => {
+    const closed = deriv(
+      [0.2, 300, 300, 0.3],
+      { ...P, modelLevel: 1, k0PerS: 0 },
+      inputs({ feedFactor: 0 }),
+    );
+    expect(closed[0]).toBe(0); // plus de dilution ni de réaction
+    const half = deriv(
+      [0.2, 300, 300, 0.3],
+      { ...P, modelLevel: 1, k0PerS: 0 },
+      inputs({ feedFactor: 0.5 }),
+    );
+    const full = deriv([0.2, 300, 300, 0.3], { ...P, modelLevel: 1, k0PerS: 0 }, inputs());
+    expect(half[0]).toBeCloseTo(0.5 * (full[0] as number), 12);
+  });
+
+  it('la capacité thermique de la paroi ralentit dT/dt sans changer le point stationnaire', () => {
+    const bare = deriv([0.5, 351, 300, 0.3], { ...P, vesselHeatCapacityJK: 0 }, inputs());
+    const walled = deriv([0.5, 351, 300, 0.3], P, inputs());
+    const ratio =
+      (P.volumeL * P.rhoGL * P.cpJGK) / (P.volumeL * P.rhoGL * P.cpJGK + P.vesselHeatCapacityJK);
+    expect(walled[1]).toBeCloseTo((bare[1] as number) * ratio, 12);
   });
 
   it('la dynamique de la vanne est du 1er ordre limitée en vitesse', () => {

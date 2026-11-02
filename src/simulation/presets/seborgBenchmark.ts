@@ -28,6 +28,10 @@ export const SEBORG_PARAMS: ReactorParams = {
   rhoGL: 1000, // ρ — Seborg
   cpJGK: 0.239, // C_p — Seborg
   viscosityPaS: 1.0e-3, // TODO(chem): valider (eau à 20 °C ; dépend du milieu réel)
+  // Paroi de cuve : ≈ 100 kg d'acier inoxydable × 0,5 kJ/(kg·K). Absente du benchmark de Seborg ;
+  // ajoutée pour ralentir l'emballement (sans elle, 3 s séparent l'alarme HH de la rupture,
+  // soit 0,3 s réelles à ×10). Ne modifie pas les états stationnaires. TODO(chem): valider.
+  vesselHeatCapacityJK: 5.0e4,
 
   uaRefWK: 5.0e4 / 60, // UA = 5·10⁴ J/(min·K) — Seborg
   uaMinWK: (5.0e4 / 60) * 0.1, // TODO(chem): valider U_min (S4-C01) — 10 % de UA_ref
@@ -57,13 +61,14 @@ export const SEBORG_PARAMS: ReactorParams = {
   reliefSetPressurePa: 3.0e5,
   reliefResetFraction: 0.9,
   reliefCd: 0.65, // TODO(chem): valider (S4-C02)
-  reliefAreaM2: 1.5e-5, // TODO(chem): valider (S4-C02)
+  reliefAreaM2: 6.0e-6, // ≈ Ø 2,8 mm : volontairement sous-dimensionnée (voir docs/model.md §soupape) // TODO(chem): valider (S4-C02)
   latentHeatJKg: WATER_LATENT_HEAT_J_KG,
   reliefEnabled: true,
 
-  // Seuils d'alarme (S2-C03). Les valeurs du plan (H = 370 K, HH = 400 K) arrivent trop tard :
-  // la simulation montre qu'au-delà de ~385 K le pic d'emballement atteint 450 K en ~3 s.
-  // H/HH sont donc abaissés à 365/380 K pour laisser une fenêtre d'intervention.
+  // Seuils d'alarme (S2-C03). Les valeurs du plan (H = 370 K, HH = 400 K) sont reportées trop
+  // haut : H = 365 K et HH = 380 K donnent ≈ 10 s (HH) puis ≈ 160 s simulées avant la rupture
+  // dans le scénario de panne de pompe. L'état stationnaire haut stable est à ≈ 370 K : H
+  // s'y déclenche, HH non.
   tLLK: 330,
   tHK: 365,
   tHHK: 380,
@@ -79,7 +84,7 @@ export const SEBORG_COLD_STATE: ReactorState = { CA: 0, T: 300, Tj: 300, v: 0 };
 
 /** Réglages PID par défaut, issus de l'accord du notebook 03 (S2-C02). TODO(chem): valider. */
 export const SEBORG_PID: PidSettings = {
-  kp: 0.25, // 1/K
+  kp: 0.4, // 1/K
   ki: 0.01, // 1/(K·s)
   kd: 3, // s/K
   tauFilterS: 2, // s
@@ -89,6 +94,7 @@ export const SEBORG_PID: PidSettings = {
 
 /** Quench par défaut. TODO(chem): valider (S5-C02). */
 export const SEBORG_QUENCH: QuenchParams = {
+  cutFeed: true,
   volumeL: 60,
   tempK: 280,
   durationS: 2,

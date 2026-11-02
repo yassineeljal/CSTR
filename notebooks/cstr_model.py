@@ -33,6 +33,7 @@ class Params:
     dHr: float = -5.0e4  # J/mol
     rho: float = 1000.0  # g/L
     cp: float = 0.239  # J/(g K)
+    Cw: float = 5.0e4  # J/K, paroi de cuve (≈ 100 kg d'acier × 0,5 kJ/kg/K)
     UAref: float = 5.0e4 / 60  # W/K
     UAmin: float = 5.0e4 / 60 * 0.1  # W/K
     uexp: float = 2 / 3
@@ -51,7 +52,7 @@ class Params:
     Patm: float = 101325.0
     Pset: float = 3.0e5
     Cd: float = 0.65
-    As: float = 1.5e-5
+    As: float = 6.0e-6
     Lv: float = 2.257e6
     relief: bool = False  # désactivée pour les trajectoires de référence
 
@@ -69,6 +70,7 @@ class Inputs:
     fouling: float = 1.0
     inhibitor: float = 1.0
     relief_open: bool = False
+    feed_factor: float = 1.0
 
 
 def arrhenius(T: float, k0: float, EaR: float) -> float:
@@ -100,13 +102,15 @@ def rhs(x, p: Params, u: Inputs):
     CA, T, Tj, v = x
     if p.level == 1:
         Tj = p.Tc
-    D = p.F / p.V
+    F = p.F * u.feed_factor
+    D = F / p.V
     k = arrhenius(T, p.k0 * u.inhibitor, p.EaR)
     rcp = p.rho * p.cp
     ua = UA_eff(p, u.fouling)
     q_relief = relief_heat(T, p) if (p.relief and u.relief_open) else 0.0
+    ctot = p.V * rcp + p.Cw  # J/K : liquide + paroi
     dCA = D * (p.CAin - CA) - k * CA
-    dT = D * (p.Tin - T) + (-p.dHr * k * CA) / rcp - ua / (p.V * rcp) * (T - Tj) - q_relief / (p.V * rcp)
+    dT = (F * rcp * (p.Tin - T) + (-p.dHr) * k * CA * p.V - ua * (T - Tj) - q_relief) / ctot
     if p.level == 1:
         return [dCA, dT, 0.0, 0.0]
     Fc = v * p.Fcmax * u.pump_eff
