@@ -12,6 +12,7 @@ import { BubbleParticles } from './BubbleParticles';
 import { Baffles } from './Baffles';
 import { CoolingJacket } from './CoolingJacket';
 import { CutawayProvider } from './CutawayContext';
+import { LabelProjector } from '@/components/academic/LabelProjector';
 import { Fluid } from './Fluid';
 import { PostEffects } from './PostEffects';
 import { ReactorDetails } from './ReactorDetails';
@@ -106,6 +107,7 @@ function Reactor() {
           <ReactorDetails geometry={g} />
         </Suspense>
       </VibrationRig>
+      <LabelProjector />
       <group>
         <Floor y={g.floorY} radius={g.tankDiameter * 6} />
       </group>

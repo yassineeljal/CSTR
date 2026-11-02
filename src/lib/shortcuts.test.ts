@@ -8,6 +8,8 @@ describe('resolveShortcut', () => {
     expect(resolveShortcut({ key: 'Q' })).toEqual({ type: 'armQuench' });
     expect(resolveShortcut({ key: 'r' })).toEqual({ type: 'reset' });
     expect(resolveShortcut({ key: 'c' })).toEqual({ type: 'toggleCutaway' });
+    expect(resolveShortcut({ key: 'i' })).toEqual({ type: 'toggleInspection' });
+    expect(resolveShortcut({ key: 'I' })).toEqual({ type: 'toggleInspection' });
     expect(resolveShortcut({ key: '1' })).toEqual({ type: 'loadScenario', id: 'cold-start' });
     expect(resolveShortcut({ key: '2' })).toEqual({ type: 'loadScenario', id: 'pump-failure' });
     expect(resolveShortcut({ key: '3' })).toEqual({ type: 'loadScenario', id: 'fouling' });

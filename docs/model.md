@@ -98,3 +98,17 @@ Diluant : 60 L à 280 K ; mélange final `C_A → 0,625·C_A`, `T → (100·T + 
 - Réaction d'ordre 1 irréversible, volume constant, mélange parfait, paroi en équilibre thermique
   instantané avec le milieu, pas de perte de charge ni de dynamique de pompe.
 - Les valeurs marquées `TODO(chem)` dans les presets n'ont pas été validées par l'équipe Génie Chimique.
+
+## 8. Audit des unités de l'interface (S6-C02)
+
+Le moteur travaille en unités SI/moteur (K, mol/L, L/s, W, Pa) ; les conversions d'affichage sont
+confinées dans `src/lib/units.ts` (tests unitaires). Unités affichées :
+
+- températures : **°C** (mesures, consigne, axes) ; **K** uniquement pour les _écarts_ (T − T_sp) et
+  dans le message de rupture, comme dans le plan ;
+- pression : **bar** ; débits : **L/min** (alimentation, eau froide), **g/s** (soupape) ;
+- puissances : **kW** ; agitation : **tr/min** ; temps simulé : **mm:ss** ;
+- gains du PID : K⁻¹, K⁻¹·s⁻¹, s/K (cohérents avec e = T − T_sp en kelvins) ;
+- concentrations : **mol/L** ; Damköhler adimensionnel.
+
+Le sélecteur de langue FR/EN (S6-L07, optionnel) n'est pas implémenté : l'interface est en français.

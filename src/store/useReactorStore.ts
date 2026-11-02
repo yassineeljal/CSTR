@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { SEBORG_PARAMS, SEBORG_PID } from '@/simulation/presets/seborgBenchmark';
+import type { SheetId } from '@/components/academic/sheets/types';
 import type {
   AlarmEvent,
   AlarmLevel,
@@ -36,6 +37,8 @@ export interface UiPreferences {
   /** Réduit les animations (vibrations, flash) — accessibilité. */
   reducedMotion: boolean;
   quality: QualityPreference;
+  /** Fiche théorique ouverte dans le tiroir (null = tiroir fermé). */
+  theorySheet: SheetId | null;
 }
 
 export const MAX_ALARM_HISTORY = 200;
@@ -99,7 +102,13 @@ const initialState = (): ReactorStoreState => ({
   error: null,
   quenchArmed: false,
   plant: { pumpOn: true, feedFactor: 1, quenchActive: false },
-  ui: { inspectionMode: false, cutaway: true, reducedMotion: false, quality: 'auto' },
+  ui: {
+    inspectionMode: false,
+    cutaway: true,
+    reducedMotion: false,
+    quality: 'auto',
+    theorySheet: null,
+  },
 });
 
 export const useReactorStore = create<ReactorStoreState & ReactorStoreActions>()((set) => ({

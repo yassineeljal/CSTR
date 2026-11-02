@@ -192,7 +192,7 @@ vh_plot(axes[1], propylene_oxide().with_(level=1), "Oxyde de propylène — 3 é
 fig.tight_layout()'''),
     ("md", """## Effet de $T_c$ et de $UA$ : hystérésis d'allumage / d'extinction
 
-En balayant $T_c$, le nombre d'états stationnaires passe de 1 à 3 puis à 1 : les bifurcations (points limites) fixent la **température critique d'allumage** $T_{c,ign}$ et celle d'**extinction** $T_{c,ext}$."""),
+En balayant $T_c$, le nombre d'états stationnaires passe de 1 à 3 puis à 1 : les bifurcations (points limites) fixent la température critique d'**allumage** $T_{c,ign}$ (borne haute : au-delà, l'état bas disparaît et le réacteur bascule vers l'état chaud) et celle d'**extinction** $T_{c,ext}$ (borne basse : en deçà, l'état haut disparaît). Entre les deux, le réacteur est bistable et son état dépend de l'histoire (hystérésis)."""),
     ("code", '''def n_states(p, Tc):
     return len(steady_states_level1(p.with_(Tc=Tc)))
 
@@ -210,8 +210,8 @@ counts = np.array([n_states(p, t) for t in Tcs])
 # bornes de la zone de multiplicité
 multi = Tcs[counts == 3]
 print(f"Seborg : 3 états stationnaires pour T_c ∈ [{multi.min():.2f} ; {multi.max():.2f}] K")
-print(f"  → extinction possible si T_c > {multi.max():.2f} K (disparition de l'état haut)")
-print(f"  → allumage possible si T_c < {multi.min():.2f} K (disparition de l'état bas)")
+print(f"  → T_c > {multi.max():.2f} K : seul l'état HAUT subsiste (l'état bas disparaît : allumage inévitable)")
+print(f"  → T_c < {multi.min():.2f} K : seul l'état BAS subsiste (l'état haut disparaît : extinction inévitable)")
 fig, ax = plt.subplots(figsize=(7, 4.5))
 ax.plot(B[:, 0], B[:, 1], ".", ms=2)
 ax.axvline(p.Tc, color="k", ls="--", lw=0.8)

@@ -36,6 +36,9 @@ export function useKeyboardShortcuts(sim: SimulationClient | null): void {
         case 'toggleCutaway':
           store.patchUi({ cutaway: !store.ui.cutaway });
           break;
+        case 'toggleInspection':
+          store.patchUi({ inspectionMode: !store.ui.inspectionMode, theorySheet: null });
+          break;
         case 'loadScenario':
           sim.loadScenario(action.id);
           break;

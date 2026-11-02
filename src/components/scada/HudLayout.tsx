@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
+import { InspectionOverlay } from '@/components/academic/InspectionOverlay';
+import { TheoryDrawer } from '@/components/academic/TheoryDrawer';
+import { VanHeerdenChart } from '@/components/academic/VanHeerdenChart';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { SCENARIOS } from '@/simulation/scenarios';
 import { TIME_SCALES } from '@/simulation/protocol';
@@ -55,6 +58,7 @@ function MotionPreference() {
 function Scene() {
   const sim = useSim();
   const cutaway = useReactorStore((s) => s.ui.cutaway);
+  const inspection = useReactorStore((s) => s.ui.inspectionMode);
   const reducedMotion = useReactorStore((s) => s.ui.reducedMotion);
   const patchUi = useReactorStore((s) => s.patchUi);
   return (
@@ -62,6 +66,7 @@ function Scene() {
       <div className="absolute inset-0">
         <ReactorStage />
       </div>
+      <InspectionOverlay />
       <AlarmBanner />
       <div className="absolute bottom-3 left-3 flex flex-wrap gap-2">
         <button
@@ -76,12 +81,32 @@ function Scene() {
         <button
           type="button"
           className={btn}
+          aria-pressed={inspection}
+          data-testid="inspection-toggle"
+          onClick={() => patchUi({ inspectionMode: !inspection, theorySheet: null })}
+        >
+          Mode inspection [I]
+        </button>
+        {inspection && (
+          <button
+            type="button"
+            className={btn}
+            data-testid="theory-open"
+            onClick={() => patchUi({ theorySheet: 'bilans' })}
+          >
+            Théorie
+          </button>
+        )}
+        <button
+          type="button"
+          className={btn}
           aria-pressed={reducedMotion}
           onClick={() => patchUi({ reducedMotion: !reducedMotion })}
         >
           Réduire les animations
         </button>
       </div>
+      <TheoryDrawer />
       <RuptureOverlay
         onRetry={() => {
           sim?.reset();
@@ -94,6 +119,7 @@ function Scene() {
 
 /** Poste de contrôle : commandes à gauche, scène 3D au centre, mesures et courbes à droite. */
 export function HudLayout() {
+  const inspection = useReactorStore((s) => s.ui.inspectionMode);
   return (
     <SimulationProvider>
       <DeepLink />
@@ -109,7 +135,15 @@ export function HudLayout() {
               Réacteur agité continu exothermique — poste de contrôle
             </p>
           </div>
-          <TimeControls />
+          <div className="flex flex-wrap items-center gap-3">
+            <TimeControls />
+            <a
+              href="/about"
+              className="text-muted focus-visible:outline-accent font-mono text-xs underline-offset-2 hover:text-zinc-200 hover:underline focus-visible:outline focus-visible:outline-2"
+            >
+              À propos
+            </a>
+          </div>
         </header>
         <div className="grid min-h-0 flex-1 grid-cols-1 lg:grid-cols-[300px_minmax(0,1fr)_390px]">
           <aside
@@ -128,6 +162,7 @@ export function HudLayout() {
           </div>
           <aside aria-label="Mesures et courbes" className="order-3 space-y-2 overflow-y-auto p-2">
             <LiveReadouts />
+            {inspection && <VanHeerdenChart />}
             <TelemetryCharts />
             <AlarmHistory />
           </aside>

@@ -24,14 +24,16 @@ export function VibrationRig({ children }: { children: ReactNode }) {
     if (!g) return;
     const { params, ui } = useReactorStore.getState();
     const s = simRef.current;
-    const amp = ui.reducedMotion
-      ? 0
-      : vibrationAmplitude(
-          s[SNAPSHOT_LAYOUT.T] as number,
-          params.tHHK,
-          params.tRuptureK,
-          (s[SNAPSHOT_LAYOUT.pressure] as number) / params.reliefSetPressurePa,
-        );
+    // mode Inspection : effets atténués (lecture des formules) ; « réduire les animations » : aucun tremblement
+    const amp =
+      ui.reducedMotion || ui.inspectionMode
+        ? 0
+        : vibrationAmplitude(
+            s[SNAPSHOT_LAYOUT.T] as number,
+            params.tHHK,
+            params.tRuptureK,
+            (s[SNAPSHOT_LAYOUT.pressure] as number) / params.reliefSetPressurePa,
+          );
     if (amp === 0) {
       g.position.set(0, 0, 0);
       g.rotation.set(0, 0, 0);

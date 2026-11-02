@@ -16,6 +16,12 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versionnage
 
 - **Sprint 5** — poste de contrôle SCADA : commandes procédé (T, C_A, F, RPM, pompe, vanne d'alimentation), PID (Auto/Manuel sans à-coup, gains, consigne), quench en deux temps, mesures 10 Hz colorées par niveau d'alarme, 4 courbes uPlot (tampon préalloué, 30 Hz max), alarmes ISA-18.2 (acquittement, retour à la normale non acquitté), journal, 4 scénarios, presets localStorage + export/import JSON validés, raccourcis clavier, e2e du parcours complet (scénario 2 → HH → quench → pas de rupture).
 
+- **Sprint 6** — mode Inspection : étiquettes 3D ancrées (formule KaTeX + valeur vivante 10 Hz), 7 fiches théoriques rendues en Markdown/KaTeX (toutes les formules compilées en mode strict par un test), tiroir de théorie, diagramme de Van Heerden en direct (recalcul uniquement sur changement de paramètres, états stationnaires et point de fonctionnement animé), page `/about`, raccourci `I`. Lighthouse : accessibilité, bonnes pratiques et SEO à 100.
+
+### Corrigé
+
+- Notebook 02 : le texte sur les bifurcations en T_c était inversé (l'état bas disparaît à T_c élevée, l'état haut à T_c basse) ; détecté par le test de Van Heerden TypeScript.
+
 ### Modifié (écarts par rapport au plan, voir `docs/model.md` §2)
 
 - Capacité thermique de paroi `C_w`, enveloppe redimensionnée (V_j = 5 L, T_c,in = 278 K), seuils H/HH = 365/380 K, quench avec arrêt d'alimentation, soupape sous-dimensionnée.

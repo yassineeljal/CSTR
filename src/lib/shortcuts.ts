@@ -7,7 +7,8 @@ export type ShortcutAction =
   | { type: 'armQuench' }
   | { type: 'reset' }
   | { type: 'loadScenario'; id: ScenarioId }
-  | { type: 'toggleCutaway' };
+  | { type: 'toggleCutaway' }
+  | { type: 'toggleInspection' };
 
 export interface KeyInput {
   key: string;
@@ -45,6 +46,9 @@ export function resolveShortcut(e: KeyInput): ShortcutAction | null {
     case 'c':
     case 'C':
       return { type: 'toggleCutaway' };
+    case 'i':
+    case 'I':
+      return { type: 'toggleInspection' };
     default: {
       const n = Number(e.key);
       if (Number.isInteger(n) && n >= 1 && n <= SCENARIO_IDS.length) {
@@ -61,5 +65,6 @@ export const SHORTCUT_HELP: readonly { keys: string; label: string }[] = [
   { keys: 'Q', label: 'Armer le quench (puis cliquer sur le bouton rouge)' },
   { keys: 'R', label: 'Réinitialiser' },
   { keys: 'C', label: 'Vue en coupe / complète' },
+  { keys: 'I', label: 'Mode inspection (formules et valeurs)' },
   { keys: '1 – 4', label: 'Charger un scénario' },
 ];
