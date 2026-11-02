@@ -8,11 +8,6 @@ const nextConfig: NextConfig = {
         loaders: ['@tailwindcss/turbopack'],
         as: '*.css',
       },
-      // Shaders GLSL importés comme chaînes brutes (README §11).
-      '*.glsl': {
-        loaders: ['raw-loader'],
-        as: '*.js',
-      },
     },
   },
 };

@@ -12,6 +12,8 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versionnage
 
 - **Sprint 3** — scène 3D : géométrie normalisée (`geometry.ts`, source unique pour Three.js et Blender), cuve/enveloppe/chicanes/agitateur/fluide procéduraux avec coupe animée par découpe en coin (shader), pièces détaillées modélisées sous Blender (`tools/blender/`, .glb Draco 73 Ko), rampe de couleur thermique partagée JS/GLSL, studio lumineux procédural (aucun HDRI), `leva` réservé au dev, budget de rendu vérifié en e2e.
 
+- **Sprint 4** — shaders et effets : fluide (vortex ∝ rpm², ondulation d'ébullition, rampe thermique, émission > 1 au-delà de ~400 K), film d'enveloppe animé (bandes ∝ F_c, figées en panne de pompe), bulles instanciées (≤ 2000, GPU), panache de vapeur, vibration ∝ (T − T_HH)⁺, Bloom + vignette + ACES, écran de rupture, liens directs `/?scenario=…&speed=…&autostart=1`.
+
 ### Modifié (écarts par rapport au plan, voir `docs/model.md` §2)
 
 - Capacité thermique de paroi `C_w`, enveloppe redimensionnée (V_j = 5 L, T_c,in = 278 K), seuils H/HH = 365/380 K, quench avec arrêt d'alimentation, soupape sous-dimensionnée.

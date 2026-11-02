@@ -2,6 +2,8 @@
 
 import { useEffect } from 'react';
 import { useThree } from '@react-three/fiber';
+import { simRef } from '@/client/simRef';
+import { SNAPSHOT_LAYOUT } from '@/simulation/protocol';
 
 /**
  * Publie 1×/s les statistiques de rendu dans `document.documentElement.dataset` (audit de
@@ -17,6 +19,9 @@ export function RenderStats() {
       d.triangles = String(render.triangles);
       d.geometries = String(memory.geometries);
       d.textures = String(memory.textures);
+      // état de simulation (tests e2e et audit) : lecture seule du snapshot
+      d.simTemp = (simRef.current[SNAPSHOT_LAYOUT.T] as number).toFixed(1);
+      d.simTime = (simRef.current[SNAPSHOT_LAYOUT.simTime] as number).toFixed(1);
     }, 1000);
     return () => clearInterval(id);
   }, [gl]);

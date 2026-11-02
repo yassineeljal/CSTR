@@ -34,7 +34,7 @@
 | 1 — Modèle validé | ✅ terminé | Notebooks 01–02, deux presets, `docs/model.md` |
 | 2 — Moteur RK4 + PID | ✅ terminé | 150+ tests, golden < 3·10⁻⁸, `/debug`, worker ≈ 60 Hz |
 | 3 — Scène 3D | ✅ terminé | Hybride procédural + Blender (ADR-003), coupe animée, < 100 draw calls |
-| 4 — Shaders & effets | ⏳ à faire | |
+| 4 — Shaders & effets | ✅ terminé | Fluide/enveloppe/bulles/vapeur sur GPU, Bloom, rupture |
 | 5 — SCADA & scénarios | ⏳ à faire | |
 | 6 — Inspection académique | ⏳ à faire | |
 | 7 — Production | ⏳ à faire | |

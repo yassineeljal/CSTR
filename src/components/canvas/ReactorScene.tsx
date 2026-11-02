@@ -4,17 +4,21 @@ import dynamic from 'next/dynamic';
 import { Suspense, useEffect, useMemo } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { ContactShadows, Environment, Lightformer, OrbitControls } from '@react-three/drei';
-import { ACESFilmicToneMapping, SRGBColorSpace } from 'three';
+import { SRGBColorSpace } from 'three';
 import { computeGeometry } from '@/simulation/geometry';
 import { useReactorStore } from '@/store/useReactorStore';
 import { Agitator } from './Agitator';
+import { BubbleParticles } from './BubbleParticles';
 import { Baffles } from './Baffles';
 import { CoolingJacket } from './CoolingJacket';
 import { CutawayProvider } from './CutawayContext';
 import { Fluid } from './Fluid';
+import { PostEffects } from './PostEffects';
 import { ReactorDetails } from './ReactorDetails';
 import { ReactorVessel } from './ReactorVessel';
 import { RenderStats } from './RenderStats';
+import { SteamParticles } from './SteamParticles';
+import { VibrationRig } from './VibrationRig';
 
 /** Réglages live : uniquement en développement, absents du bundle de production (S3-L09). */
 const DevControls =
@@ -86,18 +90,23 @@ function StudioEnvironment() {
 
 function Reactor() {
   const volumeL = useReactorStore((s) => s.params.volumeL);
+  const fcMaxLps = useReactorStore((s) => s.params.fcMaxLps);
   const g = useMemo(() => computeGeometry(volumeL), [volumeL]);
   return (
     <CutawayProvider>
-      <group>
+      <VibrationRig>
         <ReactorVessel geometry={g} />
-        <CoolingJacket geometry={g} />
+        <CoolingJacket geometry={g} fcMaxLps={fcMaxLps} />
         <Baffles geometry={g} />
         <Fluid geometry={g} />
+        <BubbleParticles geometry={g} />
         <Agitator geometry={g} />
+        <SteamParticles geometry={g} />
         <Suspense fallback={null}>
           <ReactorDetails geometry={g} />
         </Suspense>
+      </VibrationRig>
+      <group>
         <Floor y={g.floorY} radius={g.tankDiameter * 6} />
       </group>
     </CutawayProvider>
@@ -144,10 +153,10 @@ export default function ReactorScene() {
   return (
     <Canvas
       shadows
+      flat
       dpr={[1, 2]}
       gl={{
-        antialias: true,
-        toneMapping: ACESFilmicToneMapping,
+        antialias: false,
         outputColorSpace: SRGBColorSpace,
         powerPreference: 'high-performance',
       }}
@@ -172,6 +181,7 @@ export default function ReactorScene() {
       <directionalLight position={[-3, 2, -3]} intensity={0.6} color="#7aa7ff" />
       <StudioEnvironment />
       <Reactor />
+      <PostEffects />
       <RenderStats />
       <DevControls />
       <OrbitControls

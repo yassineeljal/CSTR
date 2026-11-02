@@ -3,8 +3,11 @@
 import { useEffect } from 'react';
 import { useSimulation } from '@/hooks/useSimulation';
 import { TIME_SCALES } from '@/simulation/protocol';
+import { SCENARIOS } from '@/simulation/scenarios';
+import type { ScenarioId } from '@/simulation/types';
 import { useReactorStore } from '@/store/useReactorStore';
 import { ReactorStage } from './ReactorStage';
+import { RuptureOverlay } from './RuptureOverlay';
 
 const btn =
   'rounded border border-zinc-600 bg-zinc-900/80 px-3 py-1.5 font-mono text-xs font-medium text-zinc-200 backdrop-blur hover:bg-zinc-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-cyan-400 disabled:opacity-40';
@@ -17,8 +20,15 @@ export function HudLayout() {
   const timeScale = useReactorStore((s) => s.timeScale);
   const patchUi = useReactorStore((s) => s.patchUi);
 
+  // Liens directs : /?scenario=pump-failure&speed=10&autostart=1 (démos, captures, tests)
   useEffect(() => {
-    sim?.setTimeScale(10);
+    if (!sim) return;
+    const q = new URLSearchParams(window.location.search);
+    const scenario = q.get('scenario');
+    if (scenario && scenario in SCENARIOS) sim.loadScenario(scenario as ScenarioId);
+    const speed = Number(q.get('speed') ?? 10);
+    sim.setTimeScale((TIME_SCALES as readonly number[]).includes(speed) ? speed : 10);
+    if (q.get('autostart') === '1') sim.start();
   }, [sim]);
 
   return (
@@ -30,6 +40,12 @@ export function HudLayout() {
         <h1 className="text-lg font-semibold tracking-tight text-zinc-100">CSTR Digital Twin</h1>
         <p className="text-xs text-zinc-400">Réacteur agité continu — jumeau numérique 3D</p>
       </header>
+      <RuptureOverlay
+        onRetry={() => {
+          sim?.reset();
+          sim?.start();
+        }}
+      />
       <nav
         aria-label="Commandes de simulation"
         className="absolute bottom-4 left-1/2 flex -translate-x-1/2 flex-wrap items-center justify-center gap-2"

@@ -19,3 +19,22 @@ body {
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   color-scheme: dark;
 }
+
+/* Flash de rupture (S4-L09) : désactivé si l'utilisateur demande moins d'animations */
+@keyframes rupture-flash {
+  0% {
+    opacity: 0.95;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.rupture-flash {
+  animation: rupture-flash 0.9s ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rupture-flash {
+    animation: none;
+    opacity: 0;
+  }
+}

@@ -1,10 +1,18 @@
 'use client';
 
-import { useLayoutEffect, useMemo } from 'react';
+import { useLayoutEffect, useMemo, useRef } from 'react';
 import { useFrame } from '@react-three/fiber';
-import { DoubleSide, LatheGeometry, MeshStandardMaterial, Vector2 } from 'three';
+import {
+  DoubleSide,
+  LatheGeometry,
+  MeshBasicMaterial,
+  MeshStandardMaterial,
+  ShaderMaterial,
+  Vector2,
+} from 'three';
 import { simRef } from '@/client/simRef';
 import { temperatureToRgb } from '@/lib/colorScale';
+import { JACKET_PHASE_RATE, normalizedJacketFlow } from '@/lib/visuals';
 import type { ReactorGeometry } from '@/simulation/geometry';
 import { SNAPSHOT_LAYOUT } from '@/simulation/protocol';
 import { useCutaway } from './CutawayContext';
@@ -12,12 +20,20 @@ import { CutCaps } from './CutCaps';
 import { jacketCoolantSection, jacketRadii, jacketWallSections } from './profiles';
 import { mergeParts } from './mergeParts';
 import { useBrushedMetalTexture } from './useBrushedMetal';
+import { JACKET_FRAG, JACKET_VERT } from './shaders/jacket.glsl';
+import { setUniform } from './uniforms';
 import { applyWedgeClip } from './wedge';
 
 const tmp: [number, number, number] = [0, 0, 0];
 
 /** Double enveloppe : paroi extérieure, plaques, film de fluide caloporteur coloré par T_j. */
-export function CoolingJacket({ geometry: g }: { geometry: ReactorGeometry }) {
+export function CoolingJacket({
+  geometry: g,
+  fcMaxLps,
+}: {
+  geometry: ReactorGeometry;
+  fcMaxLps: number;
+}) {
   const { uniforms } = useCutaway();
   const brushed = useBrushedMetalTexture();
   const r = jacketRadii(g);
@@ -34,16 +50,20 @@ export function CoolingJacket({ geometry: g }: { geometry: ReactorGeometry }) {
       side: DoubleSide,
     });
     applyWedgeClip(wall, uniforms);
-    const coolant = new MeshStandardMaterial({
-      color: '#2a7fd0',
-      metalness: 0,
-      roughness: 0.25,
+    const coolant = new ShaderMaterial({
+      vertexShader: JACKET_VERT,
+      fragmentShader: JACKET_FRAG,
       transparent: true,
-      opacity: 0.55,
       side: DoubleSide,
       depthWrite: false,
+      uniforms: {
+        uWedgeStart: uniforms.uWedgeStart,
+        uWedgeEnd: uniforms.uWedgeEnd,
+        uTemperature: { value: 300 },
+        uFlowPhase: { value: 0 },
+        uFlow: { value: 0 },
+      },
     });
-    applyWedgeClip(coolant, uniforms);
     const cap = new MeshStandardMaterial({
       color: '#e4e9ee',
       metalness: 0.15,
@@ -51,11 +71,9 @@ export function CoolingJacket({ geometry: g }: { geometry: ReactorGeometry }) {
       emissive: '#222a31',
       side: DoubleSide,
     });
-    const coolantCap = new MeshStandardMaterial({
-      color: '#2a7fd0',
-      roughness: 0.3,
+    const coolantCap = new MeshBasicMaterial({
       transparent: true,
-      opacity: 0.8,
+      opacity: 0.85,
       side: DoubleSide,
     });
     return { wall, coolant, cap, coolantCap };
@@ -96,11 +114,17 @@ export function CoolingJacket({ geometry: g }: { geometry: ReactorGeometry }) {
     [geoms, mats],
   );
 
-  useFrame(() => {
-    // Placeholder (S3) : couleur de l'eau selon T_j ; le motif d'écoulement arrive au Sprint 4.
-    const tj = simRef.current[SNAPSHOT_LAYOUT.Tj] as number;
+  const phase = useRef(0);
+  useFrame((_, delta) => {
+    const snap = simRef.current;
+    const tj = snap[SNAPSHOT_LAYOUT.Tj] as number;
+    const flow = normalizedJacketFlow(snap[SNAPSHOT_LAYOUT.Fc] as number, fcMaxLps);
+    // phase intégrée côté JS : les bandes se figent exactement quand le débit s'annule (pompe en panne)
+    phase.current += JACKET_PHASE_RATE * flow * Math.min(delta, 0.1);
+    setUniform(mats.coolant, 'uTemperature', tj);
+    setUniform(mats.coolant, 'uFlow', flow);
+    setUniform(mats.coolant, 'uFlowPhase', phase.current);
     temperatureToRgb(tj, tmp);
-    mats.coolant.color.setRGB(tmp[0], tmp[1], tmp[2]);
     mats.coolantCap.color.setRGB(tmp[0], tmp[1], tmp[2]);
   });
 
