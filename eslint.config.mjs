@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
     'out/**',
     'build/**',
     'next-env.d.ts',
+    // Hors périmètre ESLint : environnement Python, rapports, assets Blender.
+    'notebooks/**',
+    'coverage/**',
+    'playwright-report/**',
+    'test-results/**',
+    'tools/**',
   ]),
 ]);
 

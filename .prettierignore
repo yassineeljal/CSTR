@@ -6,3 +6,5 @@ docs/PLAN.md
 playwright-report
 test-results
 *.glb
+notebooks/.venv
+notebooks
