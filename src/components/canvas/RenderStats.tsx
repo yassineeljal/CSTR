@@ -3,9 +3,7 @@
 import { useEffect, useRef } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import type { WebGLRenderer } from 'three';
-import { simRef } from '@/client/simRef';
 import { effectiveQuality } from '@/lib/quality';
-import { SNAPSHOT_LAYOUT } from '@/simulation/protocol';
 import { useReactorStore } from '@/store/useReactorStore';
 
 /** Active/désactive la remise à zéro automatique de `renderer.info` (objet Three.js mutable par conception). */
@@ -51,9 +49,6 @@ export function RenderStats() {
       d.frames = String(frames.current);
       d.geometries = String(memory.geometries);
       d.textures = String(memory.textures);
-      // état de simulation (tests e2e et audit) : lecture seule du snapshot
-      d.simTemp = (simRef.current[SNAPSHOT_LAYOUT.T] as number).toFixed(1);
-      d.simTime = (simRef.current[SNAPSHOT_LAYOUT.simTime] as number).toFixed(1);
       const { ui, qualityTier } = useReactorStore.getState();
       d.quality = effectiveQuality(ui.quality, qualityTier);
     }, PUBLISH_MS);

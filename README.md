@@ -27,7 +27,9 @@ Jumeau numérique d'un **réacteur chimique agité continu (CSTR) exothermique**
 pnpm install
 pnpm dev                 # http://localhost:3000
 pnpm test                # tests unitaires (Vitest)
-pnpm test:e2e            # parcours utilisateur (Playwright, build de production)
+pnpm test:e2e            # tous les parcours (Playwright, build de production)
+pnpm test:e2e:3d         # scène 3D, captures, performance (rendu WebGL réel)
+PERF_GPU=1 pnpm test:e2e:3d   # idem avec le GPU de la machine
 ```
 
 Liens directs utiles : `/?scenario=pump-failure&speed=10&autostart=1` (scénario lancé), `/?kiosk=1` (scène seule), `/debug` (valeurs brutes du moteur).
@@ -71,13 +73,13 @@ Décisions d'architecture : [`docs/decisions/`](docs/decisions/) · Modèle et �
 
 ## Validation
 
-| Niveau                                                                    | Résultat                                                                                      |
-| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Moteur TS vs SciPy (10 trajectoires, 2 jeux de paramètres, jusqu'à 456 K) | écart relatif max **< 3·10⁻⁸** (exigence : 0,5 %)                                             |
-| Tests unitaires (Vitest)                                                  | **270+**, couverture de lignes ≈ 96 %                                                         |
-| Tests e2e (Playwright, build de production)                               | **25** : worker, scénarios, quench, alarmes, presets, raccourcis, WebGL absent, onglet masqué |
-| Formules des fiches théoriques                                            | compilées en mode strict par KaTeX dans les tests                                             |
-| Lighthouse (desktop)                                                      | **100 / 100 / 100 / 100**                                                                     |
+| Niveau                                                                    | Résultat                                                                                                                                |
+| ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Moteur TS vs SciPy (10 trajectoires, 2 jeux de paramètres, jusqu'à 456 K) | écart relatif max **< 3·10⁻⁸** (exigence : 0,5 %)                                                                                       |
+| Tests unitaires (Vitest)                                                  | **270+**, couverture de lignes ≈ 96 %                                                                                                   |
+| Tests e2e (Playwright, build de production)                               | **26** : 15 « ui » (HUD complet en mode 2D, sans WebGL), 10 « 3d » (scène, inspection, perf, qualité), 1 test de fumée 3D exécuté en CI |
+| Formules des fiches théoriques                                            | compilées en mode strict par KaTeX dans les tests                                                                                       |
+| Lighthouse (desktop)                                                      | **100 / 100 / 100 / 100**                                                                                                               |
 
 Performances mesurées : voir [`docs/perf.md`](docs/perf.md) (moteur 0,031 ms par tick ; 90 draw calls ; ≈ 58 FPS ; mémoire GPU stable sur 10 min).
 

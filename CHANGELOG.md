@@ -24,7 +24,7 @@ Format : [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) · Versionnage
 
 - Notebook 02 : le texte sur les bifurcations en T_c était inversé (l'état bas disparaît à T_c élevée, l'état haut à T_c basse) ; détecté par le test de Van Heerden TypeScript.
 
-- **Sprint 7** — production : rendu 3D à la demande (ADR-006), qualité adaptative (ADR-007), chargement différé de KaTeX/Markdown (JS initial 406 → 211 ko gzip), repli 2D sans WebGL + boundary d'erreur, pause automatique de l'onglet masqué, mode kiosque, SEO/Open Graph, icônes, `docs/perf.md` (soak 10 min sur GPU), CI avec vérification des trajectoires golden, README final, licence MIT.
+- **Sprint 7** — production : rendu 3D à la demande (ADR-006), qualité adaptative (ADR-007), chargement différé de KaTeX/Markdown (JS initial 406 → 211 ko gzip), repli 2D sans WebGL + boundary d'erreur, pause automatique de l'onglet masqué, mode kiosque, SEO/Open Graph, icônes, `docs/perf.md` (soak 10 min sur GPU), CI avec vérification des trajectoires golden, README final, licence MIT. Suite e2e scindée : `ui` (WebGL désactivé → repli 2D, rapide), `3d` (local), `smoke3d` (CI) — les runners GitHub rendent la 3D à ≈ 0,3 image/s en logiciel.
 
 ### Modifié (écarts par rapport au plan, voir `docs/model.md` §2)
 

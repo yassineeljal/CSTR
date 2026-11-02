@@ -16,6 +16,7 @@ import { PidPanel } from './PidPanel';
 import { PresetsPanel } from './PresetsPanel';
 import { QuenchButton } from './QuenchButton';
 import { ReactorStage } from './ReactorStage';
+import { SimDataAttributes } from './SimDataAttributes';
 import { RuptureOverlay } from './RuptureOverlay';
 import { ScenarioSelector } from './ScenarioSelector';
 import { ShortcutHelp } from './ShortcutHelp';
@@ -189,6 +190,7 @@ export function HudLayout() {
   return (
     <SimulationProvider>
       <DeepLink />
+      <SimDataAttributes />
       <Shortcuts />
       <MotionPreference />
       <div className="bg-background flex h-dvh flex-col overflow-y-auto text-zinc-200 lg:overflow-hidden">
