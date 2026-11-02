@@ -18,6 +18,7 @@ const eslintConfig = defineConfig([
     'playwright-report/**',
     'test-results/**',
     'tools/**',
+    'public/**',
   ]),
 ]);
 

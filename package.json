@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "geometry:export": "node scripts/export-geometry.mjs"
   },
   "dependencies": {
     "@react-three/drei": "10.7.9",

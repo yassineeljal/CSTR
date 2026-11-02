@@ -1,0 +1,179 @@
+{
+  "_comment": "Généré par scripts/export-geometry.mjs — ne pas éditer à la main.",
+  "volumeL": 100,
+  "ratios": {
+    "shellHeight": 1,
+    "headDepth": 0.25,
+    "wallThickness": 0.012,
+    "fillFraction": 0.8,
+    "turbineDiameter": 0.3333333333333333,
+    "turbineClearance": 0.3333333333333333,
+    "turbineDiskRatio": 0.75,
+    "bladeLength": 0.25,
+    "bladeHeight": 0.2,
+    "bladeCount": 6,
+    "shaftDiameter": 0.03,
+    "baffleCount": 4,
+    "baffleWidth": 0.08333333333333333,
+    "baffleThickness": 0.012,
+    "baffleWallGap": 0.014,
+    "jacketGap": 0.06,
+    "jacketStart": 0.05,
+    "jacketEnd": 0.88,
+    "motorDiameter": 0.22,
+    "motorHeight": 0.28,
+    "nozzleDiameter": 0.07,
+    "reliefValveDiameter": 0.09,
+    "legHeight": 0.42,
+    "lidFlangeOverhang": 0.045,
+    "nozzleLength": 0.12
+  },
+  "angles": {
+    "feed": 2.6179938779914944,
+    "reliefValve": 3.9269908169872414,
+    "thermowell": 5.497787143782138,
+    "sightGlass": 1.8325957145940461,
+    "jacketIn": 2.0943951023931953,
+    "jacketOut": 5.235987755982989,
+    "cutEdge": 1.5707963267948966
+  },
+  "geometry": {
+    "tankDiameter": 0.5030795991604359,
+    "tankRadius": 0.25153979958021794,
+    "shellHeight": 0.5030795991604359,
+    "headDepth": 0.12576989979010897,
+    "wallThickness": 0.006036955189925231,
+    "liquidHeight": 0.4024636793283487,
+    "turbineDiameter": 0.1676931997201453,
+    "turbineRadius": 0.08384659986007265,
+    "turbineHeight": 0.1676931997201453,
+    "turbineDiskRadius": 0.06288494989505448,
+    "bladeLength": 0.04192329993003632,
+    "bladeHeight": 0.03353863994402906,
+    "bladeCount": 6,
+    "shaftRadius": 0.007546193987406538,
+    "baffleCount": 4,
+    "baffleWidth": 0.04192329993003632,
+    "baffleThickness": 0.006036955189925231,
+    "baffleWallGap": 0.007043114388246102,
+    "jacketInnerRadius": 0.2575767547701432,
+    "jacketOuterRadius": 0.28776153071976934,
+    "jacketBottom": 0.025153979958021794,
+    "jacketTop": 0.44271004726118357,
+    "motorRadius": 0.055338755907647946,
+    "motorHeight": 0.14086228776492205,
+    "nozzleRadius": 0.017607785970615256,
+    "reliefValveRadius": 0.022638581962219614,
+    "legHeight": 0.21129343164738307,
+    "lidFlangeRadius": 0.27417838154243757,
+    "nozzleLength": 0.060369551899252305,
+    "floorY": -0.337063331437492
+  },
+  "nozzles": [
+    {
+      "id": "feed",
+      "position": [
+        0.06917344488455993,
+        0.6081181740556466,
+        -0.11981192107462328
+      ],
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "radius": 0.017607785970615256,
+      "length": 0.060369551899252305
+    },
+    {
+      "id": "reliefValve",
+      "position": [
+        -0.1067192988128863,
+        0.603695518992523,
+        -0.10671929881288633
+      ],
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "radius": 0.022638581962219614,
+      "length": 0.060369551899252305
+    },
+    {
+      "id": "thermowell",
+      "position": [
+        -0.08003947410966475,
+        0.6153957110292956,
+        0.08003947410966471
+      ],
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "radius": 0.017607785970615256,
+      "length": 0.060369551899252305
+    },
+    {
+      "id": "sightGlass",
+      "position": [
+        0.14578127325246518,
+        0.603695518992523,
+        -0.039061974439578886
+      ],
+      "direction": [
+        0,
+        1,
+        0
+      ],
+      "radius": 0.017607785970615256,
+      "length": 0.060369551899252305
+    },
+    {
+      "id": "outlet",
+      "position": [
+        0,
+        -0.12576989979010897,
+        0
+      ],
+      "direction": [
+        0,
+        -1,
+        0
+      ],
+      "radius": 0.017607785970615256,
+      "length": 0.060369551899252305
+    },
+    {
+      "id": "jacketIn",
+      "position": [
+        0.2492087958352164,
+        0.04527716392443923,
+        -0.14388076535988462
+      ],
+      "direction": [
+        0.8660254037844387,
+        0,
+        -0.4999999999999998
+      ],
+      "radius": 0.017607785970615256,
+      "length": 0.060369551899252305
+    },
+    {
+      "id": "jacketOut",
+      "position": [
+        -0.24920879583521638,
+        0.42258686329476614,
+        0.1438807653598847
+      ],
+      "direction": [
+        -0.8660254037844386,
+        0,
+        0.5000000000000001
+      ],
+      "radius": 0.017607785970615256,
+      "length": 0.060369551899252305
+    }
+  ]
+}
